@@ -8,13 +8,17 @@ body {
   background: lightslategrey;
 }
 
+h2 {
+  color: white;
+}
+
 .parent {
   display: grid;
   place-items: center;
   
-  width: 480px;
+  width: 640px;
   height: 500px;
-  min-width: 300px;
+  min-width: 600px;
   min-height: 120px;
   
   resize: both;
@@ -26,7 +30,7 @@ body {
   // etc.
   padding: 0.5rem;
   border-radius: 10px;
-  border: 2px solid #444;
+  border: 2px solid #777;
   background: black;
   font-size: 4rem;
   color: yellow;
@@ -37,6 +41,7 @@ body {
   font-family: system-ui, serif;
 }
 </style>
+
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-96723-2"></script>
@@ -59,9 +64,16 @@ body {
 </head>
 <body>
 
+<h2>COR.WiN</h2>
+
 <div class="parent" >
-  <div class="child">(☞ﾟヮﾟ)☞</div>
+  <div class="child" id="rndtxt">(☞ﾟヮﾟ)☞</div>
 </div>
 
 </body>
+<script>
+	let myStrings = ['(☞ﾟヮﾟ)☞','༼ つ ◕_◕ ༽つ','(╯°□°）╯︵ ┻━┻','¯\\_(ツ)_/¯','(❁´◡`❁)'];
+	let randomString = myStrings[Math.floor(Math.random() * myStrings.length)];
+	document.getElementById("rndtxt").innerText = randomString;
+</script>
 </html>
