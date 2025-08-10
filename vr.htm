@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>VR Video Player</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #111;
+            color: #fff;
+            overflow: hidden;
+        }
+        #container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+        #container:grabbing {
+            cursor: grabbing;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            z-index: 1000;
+        }
+        #overlay h1 {
+            margin-bottom: 1rem;
+        }
+        #overlay p {
+            max-width: 80%;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+        #fileInputButton {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #fileInputButton:hover {
+            background-color: #0056b3;
+        }
+        #fileInput {
+            display: none;
+        }
+        #vr-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Container for the Three.js scene -->
+    <div id="container"></div>
+
+    <!-- Initial overlay for user instructions and file selection -->
+    <div id="overlay">
+        <h1>Welcome to the VR Video Player</h1>
+        <p>Select a local video file to begin. On desktop, click the buttons, seek bar, or volume slider to control playback. Click and drag to look around, and use the scroll wheel to zoom.</p>
+        <button id="fileInputButton">Select Video File</button>
+        <input type="file" id="fileInput" accept="video/*">
+    </div>
+
+    <!-- The video element, hidden from the user, used as a texture source -->
+    <video id="video" loop crossOrigin="anonymous" playsinline style="display:none"></video>
+
+    <!-- Import Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script type="module">
+        // This is a special script to get the VRButton from the Three.js examples
+        import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/VRButton.js';
+
+        // --- Global Variables ---
+        let camera, scene, renderer;
+        let video, videoTexture;
+        let controlsGroup;
+        let raycaster;
+        
+        // Video geometry objects
+        let leftEyeSphere, rightEyeSphere, flatPlane;
+        let isSbsMode = true; // Start in SBS mode by default
+
+        let intersectedObject = null;
+        let hoverTimer = null;
+        const HOVER_DURATION = 1500; // 1.5 seconds to trigger a control
+
+        // --- Desktop Mouse Controls Variables ---
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        // --- UI Constants ---
+        const seekBarWidth = 1.0;
+        const volumeBarHeight = 0.5;
+
+        // --- Initialization ---
+        init();
+        animate();
+
+        function init() {
+            // Get DOM elements
+            const container = document.getElementById('container');
+            const fileInput = document.getElementById('fileInput');
+            const fileInputButton = document.getElementById('fileInputButton');
+            const overlay = document.getElementById('overlay');
+            video = document.getElementById('video');
+            video.volume = 0.5; // Start at 50% volume
+
+            // --- Scene Setup ---
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x101010);
+
+            // --- Camera Setup ---
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.layers.enable(1); 
+            scene.add(camera); 
+
+            // --- Video Texture Setup ---
+            videoTexture = new THREE.VideoTexture(video);
+
+            // --- Video Geometry ---
+            const sphereRadius = 500;
+            const sphereWidthSegments = 60;
+            const sphereHeightSegments = 40;
+
+            // Left eye sphere (for SBS 3D mode)
+            const leftEyeSphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthSegments, sphereHeightSegments);
+            leftEyeSphereGeo.scale(-1, 1, 1);
+            const leftEyeMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+            leftEyeMaterial.map.wrapS = THREE.RepeatWrapping;
+            leftEyeMaterial.map.repeat.x = -0.5;
+            leftEyeSphere = new THREE.Mesh(leftEyeSphereGeo, leftEyeMaterial);
+            leftEyeSphere.layers.set(1);
+            scene.add(leftEyeSphere);
+
+            // Right eye sphere (for SBS 3D mode)
+            const rightEyeSphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthSegments, sphereHeightSegments);
+            rightEyeSphereGeo.scale(-1, 1, 1);
+            const rightEyeMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+            rightEyeMaterial.map.wrapS = THREE.RepeatWrapping;
+            rightEyeMaterial.map.repeat.x = 0.5;
+            rightEyeMaterial.map.offset.x = 0.5;
+            rightEyeSphere = new THREE.Mesh(rightEyeSphereGeo, rightEyeMaterial);
+            rightEyeSphere.layers.set(2);
+            scene.add(rightEyeSphere);
+
+            // Flat 2D Plane (for 2D mode)
+            const planeGeo = new THREE.PlaneGeometry(1, 1); 
+            const planeMat = new THREE.MeshBasicMaterial({ map: videoTexture });
+            flatPlane = new THREE.Mesh(planeGeo, planeMat);
+            flatPlane.position.set(0, 0, -3); 
+            flatPlane.visible = false; 
+            flatPlane.layers.set(1);
+            flatPlane.layers.enable(2);
+            camera.add(flatPlane); 
+
+
+            // --- Renderer Setup ---
+            renderer = new THREE.WebGLRenderer();
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true;
+            renderer.xr.setReferenceSpaceType('local');
+            container.appendChild(renderer.domElement);
+
+            // --- VR Button ---
+            const vrButton = VRButton.createButton(renderer);
+            document.body.appendChild(vrButton);
+            vrButton.id = 'vr-button';
+            vrButton.style.display = 'none';
+
+            // --- Gaze/Click Controls ---
+            raycaster = new THREE.Raycaster();
+            createControls();
+
+            // --- Event Listeners ---
+            fileInputButton.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            window.addEventListener('resize', onWindowResize);
+
+            // --- Desktop Mouse Control Event Listeners ---
+            container.addEventListener('mousedown', onMouseDown);
+            container.addEventListener('mousemove', onMouseMove);
+            container.addEventListener('mouseup', onMouseUp);
+            container.addEventListener('mouseleave', onMouseUp);
+            container.addEventListener('wheel', onMouseWheel);
+        }
+
+        /**
+         * Creates the 3D buttons and sliders for controlling the video.
+         */
+        function createControls() {
+            controlsGroup = new THREE.Group();
+            const buttonSize = 0.2;
+            const buttonDistance = 2;
+
+            const createButton = (name, icon, position, action) => {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 256; canvas.height = 256;
+                const draw = (isHovered = false) => {
+                    context.fillStyle = isHovered ? '#007bff' : '#333';
+                    context.fillRect(0, 0, 256, 256);
+                    context.fillStyle = 'white';
+                    context.font = '120px Arial';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText(icon, 128, 128);
+                };
+                draw();
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+                const geometry = new THREE.PlaneGeometry(buttonSize, buttonSize);
+                const button = new THREE.Mesh(geometry, material);
+                button.name = name;
+                button.position.set(position.x, position.y, position.z);
+                button.userData.action = action;
+                button.userData.canvasContext = context;
+                button.userData.texture = texture;
+                return button;
+            };
+
+            const buttons = [
+                { name: 'seek-back', icon: '⏪', position: { x: -0.5, y: -0.5, z: -buttonDistance }, action: () => video.currentTime -= 10 },
+                { name: 'play-pause', icon: '▶️', position: { x: 0, y: -0.5, z: -buttonDistance }, action: togglePlayPause },
+                { name: 'seek-forward', icon: '⏩', position: { x: 0.5, y: -0.5, z: -buttonDistance }, action: () => video.currentTime += 10 },
+                { name: 'reset-view', icon: '🔄', position: { x: -0.3, y: -0.85, z: -buttonDistance }, action: resetView },
+                { name: 'toggle-sbs', icon: '2D', position: { x: 0.3, y: -0.85, z: -buttonDistance }, action: toggleSbsMode },
+                // Volume buttons for gaze control
+                { name: 'volume-up', icon: '🔊', position: { x: 0.8, y: -0.3, z: -buttonDistance }, action: () => video.volume = Math.min(1, video.volume + 0.1) },
+                { name: 'volume-down', icon: '🔉', position: { x: 0.8, y: -0.7, z: -buttonDistance }, action: () => video.volume = Math.max(0, video.volume - 0.1) },
+            ];
+            buttons.forEach(b => controlsGroup.add(createButton(b.name, b.icon, b.position, b.action)));
+            
+            // --- Create Seek Bar ---
+            const seekBarHeight = 0.05;
+            const seekBarYPos = -0.65;
+            const seekBarZPos = -buttonDistance;
+
+            const trackGeo = new THREE.PlaneGeometry(seekBarWidth, seekBarHeight);
+            const trackMat = new THREE.MeshBasicMaterial({ color: 0x555555, transparent: true, opacity: 0.8 });
+            const seekBarTrack = new THREE.Mesh(trackGeo, trackMat);
+            seekBarTrack.name = 'seekBarTrack';
+            seekBarTrack.position.set(0, seekBarYPos, seekBarZPos);
+            controlsGroup.add(seekBarTrack);
+
+            const progressGeo = new THREE.PlaneGeometry(seekBarWidth, seekBarHeight);
+            const progressMat = new THREE.MeshBasicMaterial({ color: 0x007bff });
+            const seekBarProgress = new THREE.Mesh(progressGeo, progressMat);
+            seekBarProgress.name = 'seekBarProgress';
+            seekBarProgress.position.set(0, seekBarYPos, seekBarZPos + 0.001);
+            seekBarProgress.scale.x = 0;
+            controlsGroup.add(seekBarProgress);
+            
+            // --- Create Volume Slider (for mouse click and visual feedback) ---
+            const volumeBarWidth = 0.05;
+            const volumeBarXPos = 0.8;
+            const volumeBarYPos = -0.5;
+            const volumeBarZPos = -buttonDistance;
+
+            const volTrackGeo = new THREE.PlaneGeometry(volumeBarWidth, volumeBarHeight);
+            const volTrackMat = new THREE.MeshBasicMaterial({ color: 0x555555, transparent: true, opacity: 0.8 });
+            const volumeBarTrack = new THREE.Mesh(volTrackGeo, volTrackMat);
+            volumeBarTrack.name = 'volumeBarTrack';
+            volumeBarTrack.position.set(volumeBarXPos, volumeBarYPos, volumeBarZPos);
+            controlsGroup.add(volumeBarTrack);
+
+            const volProgressGeo = new THREE.PlaneGeometry(volumeBarWidth, volumeBarHeight);
+            const volProgressMat = new THREE.MeshBasicMaterial({ color: 0x007bff });
+            const volumeBarProgress = new THREE.Mesh(volProgressGeo, volProgressMat);
+            volumeBarProgress.name = 'volumeBarProgress';
+            volumeBarProgress.position.set(volumeBarXPos, volumeBarYPos, volumeBarZPos + 0.001);
+            volumeBarProgress.scale.y = video.volume;
+            controlsGroup.add(volumeBarProgress);
+
+            scene.add(controlsGroup);
+        }
+
+        // --- Event Handler Functions ---
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.play();
+                
+                video.onloadedmetadata = () => {
+                    const videoAspect = video.videoWidth / video.videoHeight;
+                    const planeHeight = 2;
+                    const planeWidth = planeHeight * videoAspect;
+                    flatPlane.scale.set(planeWidth, planeHeight, 1);
+                };
+
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('vr-button').style.display = 'block';
+            }
+        }
+
+        function togglePlayPause() {
+            const button = controlsGroup.children.find(c => c.name === 'play-pause');
+            if (!button) return;
+            if (video.paused) {
+                video.play();
+                updateButtonIcon(button, '⏸️');
+            } else {
+                video.pause();
+                updateButtonIcon(button, '▶️');
+            }
+        }
+        
+        function toggleSbsMode() {
+            isSbsMode = !isSbsMode;
+            leftEyeSphere.visible = isSbsMode;
+            rightEyeSphere.visible = isSbsMode;
+            flatPlane.visible = !isSbsMode;
+            
+            const button = controlsGroup.children.find(c => c.name === 'toggle-sbs');
+            if (button) {
+                const newIcon = isSbsMode ? '2D' : '3D';
+                updateButtonIcon(button, newIcon);
+            }
+        }
+
+        function updateButtonIcon(button, newIcon) {
+            const context = button.userData.canvasContext;
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            context.fillStyle = '#333';
+            context.fillRect(0, 0, 256, 256);
+            context.fillStyle = 'white';
+            context.font = newIcon.length > 1 ? '120px Arial' : '150px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(newIcon, 128, 128);
+            button.userData.texture.needsUpdate = true;
+        }
+
+        function resetView() {
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            controlsGroup.position.copy(camera.position);
+            controlsGroup.position.add(direction.multiplyScalar(2));
+            controlsGroup.lookAt(camera.position);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Desktop Mouse Control Handlers ---
+
+        function onMouseDown(event) {
+            if (renderer.xr.isPresenting) return;
+            const mouse = new THREE.Vector2(
+                (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
+                - (event.clientY / renderer.domElement.clientHeight) * 2 + 1
+            );
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(controlsGroup.children);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                if (clickedObject.userData.action) {
+                    clickedObject.userData.action();
+                } else if (clickedObject.name === 'seekBarTrack' || clickedObject.name === 'seekBarProgress') {
+                    const intersectionPoint = intersects[0].point;
+                    const localPoint = controlsGroup.worldToLocal(intersectionPoint.clone());
+                    const progress = (localPoint.x + seekBarWidth / 2) / seekBarWidth;
+                    if (video.duration) {
+                        video.currentTime = Math.max(0, Math.min(1, progress)) * video.duration;
+                    }
+                } else if (clickedObject.name === 'volumeBarTrack' || clickedObject.name === 'volumeBarProgress') {
+                    const intersectionPoint = intersects[0].point;
+                    const localPoint = controlsGroup.worldToLocal(intersectionPoint.clone());
+                    const volume = (localPoint.y + volumeBarHeight / 2) / volumeBarHeight;
+                    video.volume = Math.max(0, Math.min(1, volume));
+                }
+            } else {
+                isDragging = true;
+                container.style.cursor = 'grabbing';
+                previousMousePosition.x = event.clientX;
+                previousMousePosition.y = event.clientY;
+            }
+        }
+
+        function onMouseMove(event) {
+            if (renderer.xr.isPresenting || !isDragging) return;
+            const deltaMove = { x: event.clientX - previousMousePosition.x, y: event.clientY - previousMousePosition.y };
+            const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+            euler.setFromQuaternion(camera.quaternion);
+            euler.y -= deltaMove.x * 0.002;
+            euler.x -= deltaMove.y * 0.002;
+            euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+            camera.quaternion.setFromEuler(euler);
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+        }
+        
+        function onMouseUp() {
+            isDragging = false;
+            container.style.cursor = 'grab';
+        }
+
+        function onMouseWheel(event) {
+            if (renderer.xr.isPresenting) return;
+            event.preventDefault();
+            camera.fov -= event.deltaY * 0.05;
+            camera.fov = THREE.MathUtils.clamp(camera.fov, 30, 110);
+            camera.updateProjectionMatrix();
+        }
+
+        // --- Main Animation Loop ---
+
+        function animate() {
+            renderer.setAnimationLoop(render);
+        }
+
+        function render() {
+            if (renderer.xr.isPresenting) {
+                handleGaze();
+            }
+            updateSeekBar();
+            updateVolumeBar();
+            renderer.render(scene, camera);
+        }
+
+        function updateSeekBar() {
+            if (!video.duration) return;
+            const progress = video.currentTime / video.duration;
+            const seekBarProgress = controlsGroup.children.find(c => c.name === 'seekBarProgress');
+            if (seekBarProgress) {
+                seekBarProgress.scale.x = progress;
+                seekBarProgress.position.x = - (1 - progress) * (seekBarWidth / 2);
+            }
+        }
+        
+        function updateVolumeBar() {
+            const volume = video.volume;
+            const volumeBarProgress = controlsGroup.children.find(c => c.name === 'volumeBarProgress');
+            if (volumeBarProgress) {
+                volumeBarProgress.scale.y = volume;
+                // Adjust position so it grows from the bottom
+                volumeBarProgress.position.y = - (1 - volume) * (volumeBarHeight / 2) + (volumeBarHeight / 2) - 0.5 - 0.15;
+            }
+        }
+
+        function handleGaze() {
+            raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+            const intersects = raycaster.intersectObjects(controlsGroup.children);
+            if (intersects.length > 0 && intersects[0].object.userData.action) {
+                const newIntersectedObject = intersects[0].object;
+                if (intersectedObject !== newIntersectedObject) {
+                    clearHover();
+                    intersectedObject = newIntersectedObject;
+                    hoverTimer = setTimeout(() => {
+                        if (intersectedObject && intersectedObject.userData.action) {
+                            intersectedObject.userData.action();
+                        }
+                        clearHover();
+                    }, HOVER_DURATION);
+                    updateButtonHoverState(intersectedObject, true);
+                }
+            } else {
+                clearHover();
+            }
+        }
+
+        function clearHover() {
+            if (hoverTimer) {
+                clearTimeout(hoverTimer);
+                hoverTimer = null;
+            }
+            if (intersectedObject) {
+                updateButtonHoverState(intersectedObject, false);
+                intersectedObject = null;
+            }
+        }
+
+        function updateButtonHoverState(button, isHovered) {
+             const context = button.userData.canvasContext;
+             context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+             context.fillStyle = isHovered ? '#0056b3' : '#333';
+             context.fillRect(0, 0, 256, 256);
+             const buttonDefs = [
+                { name: 'seek-back', icon: '⏪' },
+                { name: 'play-pause', icon: video.paused ? '▶️' : '⏸️' },
+                { name: 'seek-forward', icon: '⏩' },
+                { name: 'reset-view', icon: '🔄' },
+                { name: 'toggle-sbs', icon: isSbsMode ? '2D' : '3D' },
+                { name: 'volume-up', icon: '🔊' },
+                { name: 'volume-down', icon: '🔉' },
+            ];
+             const currentIcon = buttonDefs.find(b => b.name === button.name).icon;
+             context.fillStyle = 'white';
+             context.font = currentIcon.length > 1 ? '120px Arial' : '150px Arial';
+             context.textAlign = 'center';
+             context.textBaseline = 'middle';
+             context.fillText(currentIcon, 128, 128);
+             button.userData.texture.needsUpdate = true;
+        }
+
+    </script>
+</body>
+</html>
