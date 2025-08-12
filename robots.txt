@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 User-Agent: *
 Disallow: 
+=======
+User-Agent: *
+Disallow: 
+>>>>>>> beb7f1b1ffe663f53bc0367157ddddf041fead3c
 Sitemap: https://cor.win/sitemap.xml
