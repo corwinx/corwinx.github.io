@@ -1,161 +1,173 @@
 <!DOCTYPE html>
-<html lang = "en">
+<html lang="en">
 <head>
-<title>COR.WiN</title>
-<meta name="description" content="Corwin's personal website, HTML/CSS playground, developer sandbox">
-<meta name="keywords" content="corwin,cor,win,cor.win,developer,personal,html,css,js,javascript" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cor.win</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a custom font family from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        /* Custom keyframes for the glowing border effect */
+        @keyframes glowing-border {
+            0% {
+                box-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899;
+            }
+            50% {
+                box-shadow: 0 0 20px #a855f7, 0 0 40px #ec4899;
+            }
+            100% {
+                box-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899;
+            }
+        }
+        
+        /* Apply the glowing border animation to the main container */
+        .glow-effect {
+            animation: glowing-border 3s ease-in-out infinite;
+        }
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bungee+Hairline&family=Bungee+Outline&family=Flow+Block&family=Inspiration&family=Noto+Nastaliq+Urdu:wght@700&family=Noto+Sans+KR:wght@900&family=Noto+Sans+TC:wght@900&family=Rubik+Bubbles&family=Rubik+Glitch&family=Rubik+Spray+Paint&display=swap');
-
-.page {
-  padding: 40px;
-   
-}
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: Helvetica, Arial, sans-serif;
-}
-
-#splash {
-  background: #1f73cc;
-  background-repeat: repeat-y;
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  animation: splash 3s ease-in;
-  animation-fill-mode: forwards;
-  -webkit-animation-fill-mode: forwards;
-}
-
-#loader {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translate(-50%,0);
-}
-
-#loader:after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  margin-left: -8px;
-  bottom: -170px;
-  width: 3px;
-  background: #fff;
-  background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 100%);
-  height: 200px;
-}
-
-#loader:before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  margin-left: 8px;
-  bottom: -190px;
-  width: 3px;
-  background: #000;
-  background: linear-gradient(to bottom, rgba(0,0,0,.2) 0%, rgba(0,0,0,.2) 50%, rgba(0,0,0,0) 100%);
-  height: 200px;
-}
-
-#splash .anim {
-  height: 100%;
-  position: absolute;
-  left: 50%;
-  width: 100px;
-  transform: translate(-50%,100%);
-  animation: loader 4s linear;
-  animation-fill-mode: forwards;
-  -webkit-animation-fill-mode: forwards;
-}
-
-@keyframes loader {
-  0% {
-    transform: translate(-50%,110%);
-  }
-  30% {
-    transform: translate(-50%,50%);
-  }
-  100% {
-    transform: translate(-50%,0%);
-  }
-}
-
-@keyframes splash {
-  0% {
-    transform: translate(0%,0%);
-  }
-  50% {
-    transform: translate(0%,0%);
-  }
-  100% {
-    transform: translate(0%,-100%);
-  }
-}
-
-</style>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSFX8040QX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-PSFX8040QX');
-</script>
-
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({
-	google_ad_client: "ca-pub-9200609803299127",
-	enable_page_level_ads: true
-  });
-</script>
+        /* Set a simple, clean background and make the body a flex container */
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Orbitron', sans-serif;
+        }
+    </style>
 </head>
-<body>
-    
-  <div class="page">
-    <header>
-      <h1>Welcome</h1>
-      <p>This <a href="https://www.namecheap.com/market/buynow/cor.win/">domain is for sale</a></p>
+<body class="min-h-screen flex flex-col items-center justify-between p-8">
+
+    <!-- Header section with the main title -->
+    <header class="w-full text-center mt-8">
+        <h1 class="text-6xl md:text-8xl font-bold tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+            cor.win
+        </h1>
     </header>
-  </div>
-  <div id="splash">
-    <div class="anim">
-      <div id="loader">
-        <svg version="1.1" width="60px" height="70px" viewBox="0 0 60 70">
-          <defs>
-            <filter id="f1" x="0" y="0">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
-            </filter>
-          </defs>
-          <g id="airplane">
-            <path fill="#000" d="M0.677,20.977l4.355,1.631c0.281,0.104,0.579,0.162,0.88,0.16l9.76-0.004L30.46,41.58c0.27,0.34,0.679,0.545,1.112,0.541
-            h1.87c0.992,0,1.676-0.992,1.322-1.918l-6.643-17.439l6.914,0.002l6.038,6.037c0.265,0.266,0.624,0.412,0.999,0.418l1.013-0.004
-            c1.004-0.002,1.684-1.012,1.312-1.938l-2.911-7.277l2.912-7.278c0.372-0.928-0.313-1.941-1.313-1.938h1.017
-            c-0.375,0-0.732,0.15-0.996,0.414l-6.039,6.039h-6.915l6.646-17.443c0.354-0.926-0.33-1.916-1.321-1.914l-1.87-0.004
-            c-0.439,0.004-0.843,0.203-1.112,0.543L15.677,17.24l-9.765-0.002c-0.3,0.002-0.597,0.055-0.879,0.16L0.678,19.03
-            C-0.225,19.36-0.228,20.637,0.677,20.977z" transform="translate(44,0) rotate(90 0 0)" />
-          </g>
-          <g id="shadow" transform="scale(.9)">
-            <path fill="#000" fill-opacity="0.3" d="M0.677,20.977l4.355,1.631c0.281,0.104,0.579,0.162,0.88,0.16l9.76-0.004L30.46,41.58c0.27,0.34,0.679,0.545,1.112,0.541
-            h1.87c0.992,0,1.676-0.992,1.322-1.918l-6.643-17.439l6.914,0.002l6.038,6.037c0.265,0.266,0.624,0.412,0.999,0.418l1.013-0.004
-            c1.004-0.002,1.684-1.012,1.312-1.938l-2.911-7.277l2.912-7.278c0.372-0.928-0.313-1.941-1.313-1.938h1.017
-            c-0.375,0-0.732,0.15-0.996,0.414l-6.039,6.039h-6.915l6.646-17.443c0.354-0.926-0.33-1.916-1.321-1.914l-1.87-0.004
-            c-0.439,0.004-0.843,0.203-1.112,0.543L15.677,17.24l-9.765-0.002c-0.3,0.002-0.597,0.055-0.879,0.16L0.678,19.03
-            C-0.225,19.36-0.228,20.637,0.677,20.977z" transform="translate(64,30) rotate(90 0 0)" filter="url(#f1)" />
-          </g>
-        </svg>
-      </div>
-    </div>
-  </div>
-  
+
+    <!-- Main content area, styled with the glowing border -->
+    <main class="flex-grow flex items-center justify-center p-4 w-full max-w-2xl">
+        <div class="text-center p-8 md:p-10 rounded-2xl glow-effect bg-gray-800 bg-opacity-50 border-2 border-transparent">
+            <!-- These elements will be filled with a random quote by the JavaScript below -->
+            <h2 id="quote-text" class="text-xl md:text-3xl font-semibold mb-4 italic"></h2>
+            <p id="quote-author" class="text-md md:text-lg font-light text-gray-300 leading-relaxed"></p>
+        </div>
+    </main>
+
+    <!-- Footer section with the subtle domain purchase link -->
+    <footer class="w-full text-center mb-8">
+        <p class="text-sm text-gray-400">
+            <a href="https://www.namecheap.com/market/buynow/cor.win/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="hover:text-purple-400 transition-colors duration-300 ease-in-out underline">
+                Interested in this domain?
+            </a>
+        </p>
+    </footer>
+
+    <script>
+        // Array of famous quotes from historical figures, authors, and dystopian literature
+        const quotes = [
+            {
+                text: "The art of war is of vital importance to the State. It is a matter of life and death, a road either to safety or to ruin.",
+                author: "Sun Tzu"
+            },
+            {
+                text: "The future belongs to those who believe in the beauty of their dreams.",
+                author: "Eleanor Roosevelt"
+            },
+            {
+                text: "If you're going through hell, keep going.",
+                author: "Winston Churchill"
+            },
+            {
+                text: "If you want a picture of the future, imagine a boot stamping on a human face—forever.",
+                author: "George Orwell, 1984"
+            },
+            {
+                text: "Veni, vidi, vici.",
+                author: "Julius Caesar"
+            },
+            {
+                text: "I disapprove of what you say, but I will defend to the death your right to say it.",
+                author: "Voltaire"
+            },
+            {
+                text: "Men are so simple and so much inclined to obey immediate necessities that a deceiver will never lack victims for his deceptions.",
+                author: "Niccolò Machiavelli"
+            },
+            {
+                text: "The best revenge is to be unlike him who performed the injustice.",
+                author: "Marcus Aurelius"
+            },
+            {
+                text: "It is better to be feared than loved, if you cannot be both.",
+                author: "Niccolò Machiavelli"
+            },
+            {
+                text: "The world suffers a lot. Not because of the violence of bad people, but because of the silence of good people.",
+                author: "Napoleon Bonaparte"
+            },
+            {
+                text: "We burn a book, we burn a man, a city.",
+                author: "Ray Bradbury, Fahrenheit 451"
+            },
+            {
+                text: "Ignorance is Strength.",
+                author: "George Orwell, 1984"
+            },
+            {
+                text: "Every new beginning comes from some other beginning's end.",
+                author: "Seneca"
+            },
+            {
+                text: "He who has a why to live can bear almost any how.",
+                author: "Friedrich Nietzsche"
+            },
+            {
+                text: "Tell me and I forget. Teach me and I remember. Involve me and I learn.",
+                author: "Benjamin Franklin"
+            },
+            {
+                text: "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+                author: "Nelson Mandela"
+            },
+            {
+                text: "History is a set of lies agreed upon.",
+                author: "Napoleon Bonaparte"
+            },
+            {
+                text: "It's a dangerous business, Frodo, going out your door. You step onto the road, and if you don't keep your feet, there's no knowing where you might be swept off to.",
+                author: "J.R.R. Tolkien, The Lord of the Rings"
+            },
+            {
+                text: "The only impossible journey is the one you never begin.",
+                author: "Sun Tzu"
+            },
+            {
+                text: "Fear is the mind-killer.",
+                author: "Frank Herbert, Dune"
+            }
+        ];
+
+        // Function to select and display a random quote
+        function displayRandomQuote() {
+            // Get the HTML elements by their IDs
+            const quoteElement = document.getElementById('quote-text');
+            const authorElement = document.getElementById('quote-author');
+            
+            // Generate a random index to select a quote from the array
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const randomQuote = quotes[randomIndex];
+
+            // Update the text content of the HTML elements
+            quoteElement.textContent = `"${randomQuote.text}"`;
+            authorElement.textContent = `- ${randomQuote.author}`;
+        }
+
+        // Call the function when the window loads to display a quote immediately
+        window.onload = displayRandomQuote;
+    </script>
 </body>
 </html>
