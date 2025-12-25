@@ -15,7 +15,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canadian FIRE Calculator & Monte Carlo</title>
+    <title>Corwin's FIRE Calc (Canada)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -120,7 +120,7 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4">
             <div>
-                <h1 class="text-3xl font-bold text-emerald-400"><i class="fa-solid fa-leaf mr-2"></i>Canadian FIRE Calc</h1>
+                <h1 class="text-3xl font-bold text-emerald-400"><i class="fa-solid fa-leaf mr-2"></i>Corwin's FIRE Calc (Canada)</h1>
                 <p class="text-slate-400 text-sm mt-1">Financial Independence, Retire Early • Monte Carlo Simulation</p>
             </div>
             <div class="mt-4 md:mt-0 text-right">
@@ -256,7 +256,7 @@
                                         </div>
                                     </i>
                                 </div>
-                                <input type="number" step="0.1" id="inflation" value="3.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.1" id="inflation" value="2.8" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
                         </div>
                         
@@ -273,7 +273,7 @@
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Stock Return (%)</label>
                                     </div>
-                                    <input type="number" step="0.1" id="marketReturn" value="7.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                    <input type="number" step="0.1" id="marketReturn" value="8.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
                                 <div class="relative group flex flex-col">
                                     <div class="flex items-center mb-2">
@@ -338,7 +338,7 @@
                                     <label class="block text-xs font-medium text-emerald-400">OAS / CPP / Pension</label>
                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Government benefits or defined benefit pensions starting later in life (typically age 65+).
+                                            Government benefits or defined benefit pensions starting later in life (typically age 65+). Enter in today's dollars; will be adjusted for inflation.
                                         </div>
                                     </i>
                                 </div>
