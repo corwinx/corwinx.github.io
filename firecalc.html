@@ -491,11 +491,20 @@
         
         const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
-        // Gaussian Random Number Generator
+        // SEEDED Random Number Generator (Linear Congruential Generator)
+        // This ensures that the Monte Carlo "randomness" is the exact same every time 
+        // the calculation runs, preventing the graph from jumping when clicking input fields.
+        let seed = 1;
+        function seededRandom() {
+            var x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+
+        // Gaussian Random Number Generator using Seeded Random
         function randn_bm() {
             let u = 0, v = 0;
-            while(u === 0) u = Math.random(); 
-            while(v === 0) v = Math.random();
+            while(u === 0) u = seededRandom(); 
+            while(v === 0) v = seededRandom();
             return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
         }
 
@@ -598,7 +607,8 @@
             });
 
             input.addEventListener('blur', (e) => {
-                let val = parseCurrencyInput(e.target.value);
+                const originalVal = parseCurrencyInput(e.target.value);
+                let val = originalVal;
                 
                 // Check for max limit (data-max attribute)
                 const max = parseFloat(e.target.getAttribute('data-max'));
@@ -615,8 +625,16 @@
                 }
 
                 e.target.value = formatCurrency(val);
+                
+                // PERFORMANCE OPTIMIZATION:
+                // Only calculate/save if the value actually changed numerically.
+                // This prevents graph jitter (re-seeding) on simple focus/blur without edits.
+                // Note: We need a way to know previous value. 
+                // Since this is just visual jitter, and we implemented SEEDED RNG, this check is less critical now,
+                // but good practice.
+                // However, since we now have Seeded RNG, calling calculate() is safe (idempotent).
                 calculate(); 
-                // Only save if it's a save-input class (the calc logic handles others via specific listeners)
+                
                 if(input.classList.contains('save-input')) saveData(); 
             });
             
@@ -757,6 +775,10 @@
 
         // --- Main Logic ---
         function calculate() {
+            // RESET RANDOM SEED EVERY TIME
+            // This ensures the graph is deterministic based on inputs
+            seed = 1;
+
             // 1. Gather Inputs
             const age = parseInt(document.getElementById('age').value);
             const years = parseInt(document.getElementById('years').value);
@@ -962,9 +984,12 @@
             }
 
             // Stats Calculation
-            finalBalances.sort((a, b) => a - b);
+            // We use getMedian() here to ensure it matches the Graph/Table logic exactly
+            // (Average of middle two numbers for even set size), rather than just picking the upper middle.
+            const medianVal = getMedian(finalBalances); 
             
-            const medianVal = finalBalances[Math.floor(finalBalances.length * 0.5)];
+            // For percentiles, we sort first (getMedian sorts internally, but we need sorted array for p10/p90)
+            finalBalances.sort((a, b) => a - b);
             const p10Val = finalBalances[Math.floor(finalBalances.length * 0.1)];
             const p90Val = finalBalances[Math.floor(finalBalances.length * 0.9)];
 
