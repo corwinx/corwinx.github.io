@@ -138,7 +138,7 @@
                 <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg relative">
                     <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Profile</h2>
                     
-                    <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div class="relative group">
                             <div class="flex items-center mb-1">
                                 <label class="block text-xs font-medium text-slate-400">Current Age</label>
@@ -327,11 +327,6 @@
                                 <div class="relative group flex flex-col">
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Fixed Income (%)</label>
-                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Expected annual return for Bonds, GICs, and Cash equivalents. This portion of the portfolio is treated as having zero volatility in this simulation.
-                                            </div>
-                                        </i>
                                     </div>
                                     <input type="number" step="0.1" id="bondReturn" value="2.5" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
@@ -353,44 +348,51 @@
                         <div class="pt-4 mt-2 border-t border-slate-700 space-y-4">
                             
                             <!-- Current Income -->
-                            <div>
-                                <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-emerald-400">Current / Side Income</label>
-                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Income from part-time work or side hustles during early retirement years. Max limit: $100M.
-                                        </div>
-                                    </i>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <label class="block text-xs font-medium text-emerald-400">Current / Side Income</label>
+                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                                Income from part-time work or side hustles during early retirement years. Max limit: $100M.
+                                            </div>
+                                        </i>
+                                    </div>
+                                    <input type="text" id="currentIncome" value="$0" data-max="100000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition" placeholder="$0">
                                 </div>
-                                <input type="text" id="currentIncome" value="$0" data-max="100000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition" placeholder="$0">
                                 
-                                <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
-                                    <span>Until Year: <span id="currentIncomeEndLabel" class="text-white font-bold">2030</span></span>
-                                </div>
-                                <div class="relative pt-1 px-1">
-                                    <!-- Dynamic range updated in JS -->
-                                    <input type="range" id="currentIncomeEnd" min="2025" max="2075" value="2030" class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                <div class="flex flex-col justify-end pb-1">
+                                    <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+                                        <span>Until: <span id="currentIncomeEndLabel" class="text-white font-bold">2030</span></span>
+                                    </div>
+                                    <div class="relative pt-1 px-1">
+                                        <input type="range" id="currentIncomeEnd" min="2025" max="2075" value="2030" class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Other Income -->
-                            <div>
-                                <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-emerald-400">OAS / CPP / Pension</label>
-                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Government benefits or defined benefit pensions starting later in life (typically age 65+). Enter in today's dollars; will be adjusted for inflation. Max limit: $1M.
-                                        </div>
-                                    </i>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <label class="block text-xs font-medium text-emerald-400">OAS / CPP / Pension</label>
+                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                                Government benefits or defined benefit pensions starting later in life (typically age 65+). Enter in today's dollars; will be adjusted for inflation. Max limit: $1M.
+                                            </div>
+                                        </i>
+                                    </div>
+                                    <input type="text" id="otherIncome" value="$18,000" data-max="1000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition">
                                 </div>
-                                <input type="text" id="otherIncome" value="$18,000" data-max="1000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition">
                                 
-                                <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
-                                    <span>Start Year: <span id="otherIncomeStartLabel" class="text-white font-bold">2048</span></span>
-                                </div>
-                                <div class="relative pt-1 px-1">
-                                    <!-- Min/Max set dynamically in JS -->
-                                    <input type="range" id="otherIncomeStart" min="2025" max="2075" value="2048" class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                <div class="flex flex-col justify-end pb-1">
+                                    <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+                                        <span>Start: <span id="otherIncomeStartLabel" class="text-white font-bold">2048</span></span>
+                                    </div>
+                                    <div class="relative pt-1 px-1">
+                                        <!-- Min/Max set dynamically in JS -->
+                                        <input type="range" id="otherIncomeStart" min="2025" max="2075" value="2048" class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                    </div>
                                 </div>
                             </div>
 
@@ -575,6 +577,7 @@
                 const bonds = 100 - stocks;
                 document.getElementById('mixLabel').innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
 
+                // Update dynamic sliders with loaded values
                 const incomeSlider = document.getElementById('currentIncomeEnd');
                 document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
                 
@@ -663,7 +666,7 @@
         stockSlider.addEventListener('change', saveData); 
 
         
-        // --- Sliders for Years ---
+        // --- Sliders for Years (Current/Side Income and Other Income) ---
         const yearsInput = document.getElementById('years');
         const incomeSlider = document.getElementById('currentIncomeEnd');
         const incomeLabel = document.getElementById('currentIncomeEndLabel');
@@ -679,6 +682,10 @@
             incomeSlider.min = currentYearGlobal;
             incomeSlider.max = maxYear;
             
+            // Adjust value if out of bounds (but default to roughly 5 years from now if first load)
+            // If the user's saved value is within the new range, keep it. If out of bounds, clamp it.
+            // But on fresh load, 'value' attribute is set. 
+            // We just ensure it respects the new max.
             if (currentIncVal > maxYear) incomeSlider.value = maxYear;
             if (currentIncVal < currentYearGlobal) incomeSlider.value = currentYearGlobal;
             incomeLabel.innerText = incomeSlider.value;
@@ -707,6 +714,7 @@
         
         yearsInput.addEventListener('input', () => {
             updateSliderRanges();
+            // calc triggered via change event on years input listener
         });
 
         
@@ -1112,14 +1120,11 @@
         }
 
         // --- Event Listeners ---
-        // Change Recalculate Logic to Update Seed
         document.getElementById('calcBtn').addEventListener('click', () => {
-            // Pick a new random master seed
             masterSeed = Math.floor(Math.random() * 100000);
             calculate();
         });
         
-        // Save inputs generally on change
         document.querySelectorAll('.save-input').forEach(input => {
             input.addEventListener('change', () => {
                 saveData();
@@ -1140,7 +1145,6 @@
                 const total = getTotalPortfolio();
                 document.getElementById('displayTotalPortfolio').innerText = formatCurrency(total);
                 
-                // Logic: Amount is KING. Update Rate.
                 const amount = parseCurrencyInput(document.getElementById('withdrawalAmount').value);
                 if (total > 0) {
                     const rate = (amount / total) * 100;
@@ -1151,23 +1155,17 @@
 
         // Initialize
         window.onload = function() {
-            // Load saved data FIRST
             const dataLoaded = loadData();
             
-            // Update Start Year Slider based on Years to Project initially
             updateSliderRanges();
 
-            // Set initial dynamic labels if not already done by loadData
             const incomeSlider = document.getElementById('currentIncomeEnd');
             document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
             
-            // Force start year slider label update if loaded
             if (dataLoaded) {
                 document.getElementById('otherIncomeStartLabel').innerText = document.getElementById('otherIncomeStart').value;
             }
 
-            // If no data was loaded (first visit), force sync the Amount based on the default Rate (4%)
-            // Otherwise, the "Amount is Master" logic would see $0 default and overwrite the rate to 0%
             if (!dataLoaded) {
                 const total = getTotalPortfolio();
                 const defaultRate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
