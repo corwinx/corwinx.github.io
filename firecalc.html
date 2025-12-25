@@ -143,13 +143,13 @@
                             <div class="flex items-center mb-1">
                                 <label class="block text-xs font-medium text-slate-400">Current Age</label>
                             </div>
-                            <input type="number" id="age" value="42" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <input type="number" id="age" value="42" min="1" max="100" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                         </div>
                         <div class="relative group">
                             <div class="flex items-center mb-1">
                                 <label class="block text-xs font-medium text-slate-400">Years to Project</label>
                             </div>
-                            <input type="number" id="years" value="50" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <input type="number" id="years" value="50" min="1" max="100" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                         </div>
                     </div>
                 </div>
@@ -164,33 +164,33 @@
                                 <label class="block text-xs font-medium text-slate-400">TFSA</label>
                                 <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                     <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        Tax-Free Savings Account. Investment growth and withdrawals are completely tax-free.
+                                        Tax-Free Savings Account. Investment growth and withdrawals are completely tax-free. Max limit: $5M.
                                     </div>
                                 </i>
                             </div>
-                            <input type="text" id="tfsa" value="$100,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <input type="text" id="tfsa" value="$100,000" data-max="5000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                         </div>
                         <div class="relative group">
                             <div class="flex items-center mb-1">
                                 <label class="block text-xs font-medium text-slate-400">RRSP / LIRA</label>
                                 <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                     <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        Registered Retirement Savings Plan. Growth is tax-deferred, but withdrawals are taxed as income.
+                                        Registered Retirement Savings Plan. Growth is tax-deferred, but withdrawals are taxed as income. Max limit: $10M.
                                     </div>
                                 </i>
                             </div>
-                            <input type="text" id="rrsp" value="$250,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <input type="text" id="rrsp" value="$250,000" data-max="10000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                         </div>
                         <div class="relative group">
                             <div class="flex items-center mb-1">
                                 <label class="block text-xs font-medium text-slate-400">Non-Registered</label>
                                 <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                     <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        Taxable investment account. Interest, dividends, and capital gains are subject to tax.
+                                        Taxable investment account. Interest, dividends, and capital gains are subject to tax. Max limit: $10M.
                                     </div>
                                 </i>
                             </div>
-                            <input type="text" id="nonreg" value="$50,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <input type="text" id="nonreg" value="$50,000" data-max="10000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                         </div>
                         
                         <!-- Separator for Cash -->
@@ -199,11 +199,11 @@
                                 <label class="block text-xs font-medium text-slate-400">Cash / Money Market</label>
                                 <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                     <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        High Interest Savings or Cash equivalents. Low risk, earns the Fixed Income rate.
+                                        High Interest Savings or Cash equivalents. Low risk, earns the Fixed Income rate. Max limit: $10M.
                                     </div>
                                 </i>
                              </div>
-                             <input type="text" id="cash" value="$20,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                             <input type="text" id="cash" value="$20,000" data-max="10000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                              <p class="text-[10px] text-slate-500 mt-1">Excluded from mix. Earns Fixed Rate only.</p>
                         </div>
                     </div>
@@ -248,7 +248,7 @@
                                     <label class="block text-xs font-medium text-slate-400">Withdrawal Amount ($)</label>
                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Total annual spending (Master). This value stays fixed when portfolio value changes, updating the rate accordingly.
+                                            Total annual spending (Master). This value stays fixed when portfolio value changes, updating the rate accordingly. Limit: 50% of portfolio.
                                         </div>
                                     </i>
                                 </div>
@@ -260,11 +260,11 @@
                                     <label class="block text-xs font-medium text-slate-400">Withdrawal Rate (%)</label>
                                      <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            The % of your portfolio you spend in Year 1. Updates automatically based on the Amount.
+                                            The % of your portfolio you spend in Year 1. Updates automatically based on the Amount. Limit: 50%.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="number" step="0.01" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.01" id="withdrawalRate" value="4.0" min="0" max="50" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
                             
                         </div>
@@ -276,11 +276,11 @@
                                     <label class="block text-xs font-medium text-slate-400">Inflation (%)</label>
                                      <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            The rate at which money loses purchasing power. 3% is a conservative long-term estimate.
+                                            The rate at which money loses purchasing power. 3% is a conservative long-term estimate. Limit: 200%.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="number" step="0.1" id="inflation" value="2.8" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.1" id="inflation" value="2.8" min="0" max="200" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
                             
                             <div class="relative flex flex-col justify-end h-full pb-1">
@@ -309,18 +309,18 @@
                                             </div>
                                         </i>
                                     </div>
-                                    <input type="number" step="0.1" id="marketReturn" value="8.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                    <input type="number" step="0.1" id="marketReturn" value="8.0" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
                                 <div class="relative group flex flex-col">
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Stock Variance (%)</label>
                                         <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                             <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Annual Standard Deviation. Higher means bigger swings. 12-15% is typical for stock portfolios.
+                                                Annual Standard Deviation. Higher means bigger swings. 12-15% is typical for stock portfolios. Limit: 100%.
                                             </div>
                                         </i>
                                     </div>
-                                    <input type="number" step="0.1" id="marketVariance" value="12.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                    <input type="number" step="0.1" id="marketVariance" value="12.0" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
@@ -328,18 +328,18 @@
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Fixed Income (%)</label>
                                     </div>
-                                    <input type="number" step="0.1" id="bondReturn" value="2.5" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                    <input type="number" step="0.1" id="bondReturn" value="2.5" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
                                 <div class="relative group flex flex-col">
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Inv. Fees/MER (%)</label>
                                          <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                             <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Management Expense Ratio. Deducted annually from portfolio growth.
+                                                Management Expense Ratio. Deducted annually from portfolio growth. Limit: 50%.
                                             </div>
                                         </i>
                                     </div>
-                                    <input type="number" step="0.01" id="merFee" value="0.25" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                    <input type="number" step="0.01" id="merFee" value="0.25" min="0" max="50" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
                             </div>
                         </div>
@@ -353,18 +353,18 @@
                                     <label class="block text-xs font-medium text-emerald-400">Current / Side Income</label>
                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Income from part-time work or side hustles during early retirement years.
+                                            Income from part-time work or side hustles during early retirement years. Max limit: $100M.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="text" id="currentIncome" value="$0" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition" placeholder="$0">
+                                <input type="text" id="currentIncome" value="$0" data-max="100000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition" placeholder="$0">
                                 
                                 <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
                                     <span>Until Year: <span id="currentIncomeEndLabel" class="text-white font-bold">2030</span></span>
                                 </div>
                                 <div class="relative pt-1 px-1">
-                                    <input type="range" id="currentIncomeEnd" min="0" max="30" value="5" 
-                                    class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                    <!-- Dynamic range updated in JS -->
+                                    <input type="range" id="currentIncomeEnd" min="2025" max="2075" value="2030" class="save-input w-full h-2 rounded-lg cursor-pointer">
                                 </div>
                             </div>
 
@@ -374,13 +374,19 @@
                                     <label class="block text-xs font-medium text-emerald-400">OAS / CPP / Pension</label>
                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Government benefits or defined benefit pensions starting later in life (typically age 65+). Enter in today's dollars; will be adjusted for inflation.
+                                            Government benefits or defined benefit pensions starting later in life (typically age 65+). Enter in today's dollars; will be adjusted for inflation. Max limit: $1M.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="text" id="otherIncome" value="$18,000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition">
-                                <label class="block text-xs font-medium text-slate-400 mb-1">Start Year</label>
-                                <input type="number" id="otherIncomeStart" value="2048" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="text" id="otherIncome" value="$18,000" data-max="1000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition">
+                                
+                                <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
+                                    <span>Start Year: <span id="otherIncomeStartLabel" class="text-white font-bold">2048</span></span>
+                                </div>
+                                <div class="relative pt-1 px-1">
+                                    <!-- Min/Max set dynamically in JS -->
+                                    <input type="range" id="otherIncomeStart" min="2025" max="2075" value="2048" class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                </div>
                             </div>
 
                         </div>
@@ -482,6 +488,8 @@
              const clean = String(val).replace(/[^0-9.]/g, '');
              return parseFloat(clean) || 0;
         }
+        
+        const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
         // Gaussian Random Number Generator
         function randn_bm() {
@@ -557,8 +565,12 @@
                 const bonds = 100 - stocks;
                 document.getElementById('mixLabel').innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
 
+                // Update dynamic sliders with loaded values
                 const incomeSlider = document.getElementById('currentIncomeEnd');
-                document.getElementById('currentIncomeEndLabel').innerText = currentYearGlobal + parseInt(incomeSlider.value);
+                document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
+                
+                const otherIncomeStartSlider = document.getElementById('otherIncomeStart');
+                document.getElementById('otherIncomeStartLabel').innerText = otherIncomeStartSlider.value;
 
                 return true;
 
@@ -576,7 +588,7 @@
         }
 
 
-        // --- Input Formatting Logic ---
+        // --- Input Formatting Logic with Validation ---
         const currencyInputs = document.querySelectorAll('.currency-input');
         
         currencyInputs.forEach(input => {
@@ -586,7 +598,22 @@
             });
 
             input.addEventListener('blur', (e) => {
-                const val = parseCurrencyInput(e.target.value);
+                let val = parseCurrencyInput(e.target.value);
+                
+                // Check for max limit (data-max attribute)
+                const max = parseFloat(e.target.getAttribute('data-max'));
+                if (!isNaN(max) && val > max) {
+                    val = max;
+                }
+                
+                // Special check for Withdrawal Amount (50% of Portfolio)
+                if (e.target.id === 'withdrawalAmount') {
+                    const total = getTotalPortfolio();
+                    if (total > 0 && val > total * 0.5) {
+                        val = total * 0.5;
+                    }
+                }
+
                 e.target.value = formatCurrency(val);
                 calculate(); 
                 // Only save if it's a save-input class (the calc logic handles others via specific listeners)
@@ -596,6 +623,23 @@
             input.addEventListener('keypress', (e) => {
                 if(e.key === 'Enter') e.target.blur();
             });
+        });
+        
+        // Enforce limits on standard number inputs on change/blur
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            const enforceLimit = () => {
+                const val = parseFloat(input.value);
+                const min = parseFloat(input.min);
+                const max = parseFloat(input.max);
+                
+                if (!isNaN(min) && val < min) input.value = min;
+                if (!isNaN(max) && val > max) input.value = max;
+                
+                calculate();
+                if(input.classList.contains('save-input')) saveData();
+            };
+            input.addEventListener('change', enforceLimit);
+            // input.addEventListener('blur', enforceLimit); // Change is sufficient usually, blur duplicates
         });
 
         // --- Slider Logic ---
@@ -610,16 +654,58 @@
         });
         stockSlider.addEventListener('change', saveData); // Save on release
 
-        // --- Current Income Slider Logic ---
+        
+        // --- Sliders for Years (Current/Side Income and Other Income) ---
+        const yearsInput = document.getElementById('years');
         const incomeSlider = document.getElementById('currentIncomeEnd');
         const incomeLabel = document.getElementById('currentIncomeEndLabel');
+        const otherIncomeStartSlider = document.getElementById('otherIncomeStart');
+        const otherIncomeStartLabel = document.getElementById('otherIncomeStartLabel');
+
+        function updateSliderRanges() {
+            const yearsToProject = parseInt(yearsInput.value) || 50;
+            const maxYear = currentYearGlobal + yearsToProject;
+            
+            // Current Income Slider
+            const currentIncVal = parseInt(incomeSlider.value);
+            incomeSlider.min = currentYearGlobal;
+            incomeSlider.max = maxYear;
+            
+            // Adjust value if out of bounds (but default to roughly 5 years from now if first load)
+            // If the user's saved value is within the new range, keep it. If out of bounds, clamp it.
+            // But on fresh load, 'value' attribute is set. 
+            // We just ensure it respects the new max.
+            if (currentIncVal > maxYear) incomeSlider.value = maxYear;
+            if (currentIncVal < currentYearGlobal) incomeSlider.value = currentYearGlobal;
+            incomeLabel.innerText = incomeSlider.value;
+
+            // Other Income Slider
+            const otherIncVal = parseInt(otherIncomeStartSlider.value);
+            otherIncomeStartSlider.min = currentYearGlobal;
+            otherIncomeStartSlider.max = maxYear;
+            
+            if (otherIncVal > maxYear) otherIncomeStartSlider.value = maxYear;
+            if (otherIncVal < currentYearGlobal) otherIncomeStartSlider.value = currentYearGlobal;
+            otherIncomeStartLabel.innerText = otherIncomeStartSlider.value;
+        }
         
         incomeSlider.addEventListener('input', (e) => {
-            const yearsToAdd = parseInt(e.target.value);
-            incomeLabel.innerText = currentYearGlobal + yearsToAdd;
+            incomeLabel.innerText = e.target.value;
             calculate();
         });
-        incomeSlider.addEventListener('change', saveData); // Save on release
+        incomeSlider.addEventListener('change', saveData); 
+        
+        otherIncomeStartSlider.addEventListener('input', (e) => {
+            otherIncomeStartLabel.innerText = e.target.value;
+            calculate();
+        });
+        otherIncomeStartSlider.addEventListener('change', saveData);
+        
+        // Update slider max when years change
+        yearsInput.addEventListener('input', () => {
+            updateSliderRanges();
+            // calc triggered via change event on years input listener
+        });
 
         
         // --- Sync Logic for Withdrawal Rate / Amount ---
@@ -637,11 +723,22 @@
 
         // When Rate Changes -> Update Amount
         withdrawalRateInput.addEventListener('input', (e) => {
-             const rate = parseFloat(e.target.value) / 100;
+             // Rate limit check
+             let val = parseFloat(e.target.value);
+             if (val > 50) val = 50; 
+             // Note: can't easily force value rewrite while typing without annoyance, usually handled on blur
+             
+             const rate = val / 100;
              const total = getTotalPortfolio();
              const amount = total * rate;
              withdrawalAmountInput.value = formatCurrency(amount);
-             // Note: calculate() is triggered by the 'input' event listener added below generally
+        });
+        
+        // Ensure Rate limit on blur
+        withdrawalRateInput.addEventListener('blur', (e) => {
+            let val = parseFloat(e.target.value);
+            if (val > 50) { e.target.value = 50; calculate(); }
+            if (val < 0) { e.target.value = 0; calculate(); }
         });
 
         // When Amount Changes -> Update Rate
@@ -650,9 +747,8 @@
             const total = getTotalPortfolio();
             
             if(total > 0) {
+                // If checking limit while typing? No, check limit on blur (handled above in generic currency handler)
                 const rate = (amount / total) * 100;
-                // Use 4 decimal places for precision so the amount doesn't drift
-                // And trim zeros by parsing back to float
                 withdrawalRateInput.value = parseFloat(rate.toFixed(4));
             }
             calculate();
@@ -688,7 +784,7 @@
             const otherIncomeYear = parseInt(document.getElementById('otherIncomeStart').value);
             
             const currentIncomeAmt = parseCurrencyInput(document.getElementById('currentIncome').value);
-            const currentIncomeEndYear = currentYearGlobal + parseInt(incomeSlider.value);
+            const currentIncomeEndYear = parseInt(incomeSlider.value); // Now absolute year
 
             // --- MASTER LOGIC: Determining Initial Withdrawal ---
             // Unless the user is specifically typing in the Rate box (activeElement),
@@ -710,10 +806,7 @@
                 // Back-calculate Rate for visual consistency
                 if (totalPortfolio > 0) {
                     withdrawRate = initialWithdrawalDollar / totalPortfolio;
-                    // Only update visual rate if we are NOT typing in it (which we aren't, per logic above)
-                    // And checking if we aren't typing in Amount either (to avoid jitter while typing)
-                    // Actually, wrapper update handles the "Portfolio Change" scenario.
-                    // Here we just ensure consistency on load/calc.
+                    // Limit Rate Visual
                     withdrawalRateInput.value = parseFloat((withdrawRate * 100).toFixed(4));
                 } else {
                     withdrawRate = 0;
@@ -958,6 +1051,11 @@
                             mode: 'index',
                             intersect: false,
                             callbacks: {
+                                title: function(tooltipItems) {
+                                    const year = parseInt(tooltipItems[0].label);
+                                    const ageAtYear = age + (year - currentYearGlobal);
+                                    return `${year} (Age: ${ageAtYear})`;
+                                },
                                 label: function(context) {
                                     if(context.dataset.label === 'Median Market Path') {
                                         return 'Median: ' + formatCurrency(context.raw);
@@ -977,8 +1075,14 @@
                             grid: { color: '#334155' },
                             ticks: {
                                 color: '#94a3b8',
-                                callback: function(value) {
-                                    return '$' + (value / 1000000).toFixed(1) + 'M';
+                                callback: function(value, index, values) {
+                                    // Hide the top tick (often a messy calculated max value)
+                                    if (index === values.length - 1) return null;
+
+                                    if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
+                                    if (value >= 1000000) return '$' + (value / 1000000).toFixed(0) + 'M';
+                                    if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'k';
+                                    return '$' + Math.round(value).toLocaleString();
                                 }
                             }
                         },
@@ -1034,10 +1138,18 @@
             // Load saved data FIRST
             const dataLoaded = loadData();
             
+            // Update Start Year Slider based on Years to Project initially
+            updateSliderRanges();
+
             // Set initial dynamic labels if not already done by loadData
             const incomeSlider = document.getElementById('currentIncomeEnd');
-            document.getElementById('currentIncomeEndLabel').innerText = new Date().getFullYear() + parseInt(incomeSlider.value);
+            document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
             
+            // Force start year slider label update if loaded
+            if (dataLoaded) {
+                document.getElementById('otherIncomeStartLabel').innerText = document.getElementById('otherIncomeStart').value;
+            }
+
             // If no data was loaded (first visit), force sync the Amount based on the default Rate (4%)
             // Otherwise, the "Amount is Master" logic would see $0 default and overwrite the rate to 0%
             if (!dataLoaded) {
