@@ -250,7 +250,7 @@
                                         </div>
                                     </i>
                                 </div>
-                                <input type="number" step="0.1" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.01" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
                             
                             <div class="relative group flex flex-col">
@@ -637,7 +637,6 @@
         });
 
         // When Amount Changes -> Update Rate
-        // Use 'change' or 'blur' mostly, but input allows live update if they type numbers
         withdrawalAmountInput.addEventListener('input', (e) => {
             // We need to parse raw number because this input might have formatting if user is editing
             // But if user is typing, it might be raw.
@@ -648,8 +647,9 @@
             
             if(total > 0) {
                 const rate = (amount / total) * 100;
-                // Limit decimals to avoid ugly floating point
-                withdrawalRateInput.value = rate.toFixed(2);
+                // Use 4 decimal places for precision so the amount doesn't drift
+                // And trim zeros by parsing back to float
+                withdrawalRateInput.value = parseFloat(rate.toFixed(4));
             }
             calculate();
         });
@@ -805,7 +805,10 @@
                     simBal = end;
                     simWithdrawal = nextWithdrawal;
                     
-                    dataPoints.push(simBal);
+                    // Stop drawing the line if it has hit zero
+                    if (dataPoints[dataPoints.length - 1] > 0) {
+                        dataPoints.push(simBal);
+                    }
                 }
 
                 if (simBal > 0) successes++;
