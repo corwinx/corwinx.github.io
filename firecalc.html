@@ -241,29 +241,32 @@
                                 <i class="fa-solid fa-link"></i>
                             </div>
 
+                            <!-- SWAPPED: Amount Left, Rate Right -->
+                            
+                            <div class="relative group flex flex-col">
+                                <div class="flex items-center mb-2">
+                                    <label class="block text-xs font-medium text-slate-400">Withdrawal Amount ($)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            Total annual spending (Master). This value stays fixed when portfolio value changes, updating the rate accordingly.
+                                        </div>
+                                    </i>
+                                </div>
+                                <input type="text" id="withdrawalAmount" value="$0" class="currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500 transition">
+                            </div>
+
                             <div class="relative group flex flex-col">
                                 <div class="flex items-center mb-2">
                                     <label class="block text-xs font-medium text-slate-400">Withdrawal Rate (%)</label>
                                      <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            The % of your portfolio you spend in Year 1. It is adjusted for inflation in subsequent years.
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            The % of your portfolio you spend in Year 1. Updates automatically based on the Amount.
                                         </div>
                                     </i>
                                 </div>
                                 <input type="number" step="0.01" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
                             
-                            <div class="relative group flex flex-col">
-                                <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-slate-400">Withdrawal Amount ($)</label>
-                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Total annual spending. This is automatically calculated from the Rate, or you can edit it directly.
-                                        </div>
-                                    </i>
-                                </div>
-                                <input type="text" id="withdrawalAmount" value="$0" class="currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500 transition">
-                            </div>
                         </div>
                         
                         <!-- Inflation & Flexible Spending -->
@@ -519,13 +522,15 @@
                     data[input.id] = input.value;
                 }
             });
+            // Also explicitly save Withdrawal Amount (it's currency-input but not save-input class yet? check below)
+            data['withdrawalAmount'] = parseCurrencyInput(document.getElementById('withdrawalAmount').value);
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
         function loadData() {
             const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return;
+            if (!stored) return false;
 
             try {
                 const data = JSON.parse(stored);
@@ -555,8 +560,11 @@
                 const incomeSlider = document.getElementById('currentIncomeEnd');
                 document.getElementById('currentIncomeEndLabel').innerText = currentYearGlobal + parseInt(incomeSlider.value);
 
+                return true;
+
             } catch (e) {
                 console.error("Error loading saved data", e);
+                return false;
             }
         }
         
@@ -638,10 +646,6 @@
 
         // When Amount Changes -> Update Rate
         withdrawalAmountInput.addEventListener('input', (e) => {
-            // We need to parse raw number because this input might have formatting if user is editing
-            // But if user is typing, it might be raw.
-            // However, currencyInputs logic handles focus/blur formatting.
-            // While focused, it is raw number.
             const amount = parseFloat(e.target.value) || 0;
             const total = getTotalPortfolio();
             
@@ -666,8 +670,6 @@
             document.getElementById('displayTotalPortfolio').innerText = formatCurrency(totalPortfolio);
 
             // Assumptions
-            // We use the Rate input as the source of truth for the calc loop
-            const withdrawRate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
             
             const inflationRate = parseFloat(document.getElementById('inflation').value) / 100;
             const marketMean = parseFloat(document.getElementById('marketReturn').value) / 100;
@@ -688,14 +690,34 @@
             const currentIncomeAmt = parseCurrencyInput(document.getElementById('currentIncome').value);
             const currentIncomeEndYear = currentYearGlobal + parseInt(incomeSlider.value);
 
-            // Initial Withdrawal Dollar (Derived from Rate * Portfolio)
-            // Ensure the input box matches if we came from portfolio change
-            // But if we came from manual amount edit, the listener above handled the rate sync
-            const initialWithdrawalDollar = totalPortfolio * withdrawRate;
+            // --- MASTER LOGIC: Determining Initial Withdrawal ---
+            // Unless the user is specifically typing in the Rate box (activeElement),
+            // we treat the Amount ($) as the master value.
             
-            // Only update the Amount visual if we are NOT currently focused on it (to avoid jumping cursor)
-            if(document.activeElement !== withdrawalAmountInput) {
+            let initialWithdrawalDollar;
+            let withdrawRate; // We just calculate this for display/checking, simulation uses dollar
+
+            if (document.activeElement === withdrawalRateInput) {
+                // Rate is Master
+                withdrawRate = parseFloat(withdrawalRateInput.value) / 100;
+                initialWithdrawalDollar = totalPortfolio * withdrawRate;
+                // Update Amount visual to match
                 withdrawalAmountInput.value = formatCurrency(initialWithdrawalDollar);
+            } else {
+                // Amount is Master (default)
+                initialWithdrawalDollar = parseCurrencyInput(withdrawalAmountInput.value);
+                
+                // Back-calculate Rate for visual consistency
+                if (totalPortfolio > 0) {
+                    withdrawRate = initialWithdrawalDollar / totalPortfolio;
+                    // Only update visual rate if we are NOT typing in it (which we aren't, per logic above)
+                    // And checking if we aren't typing in Amount either (to avoid jitter while typing)
+                    // Actually, wrapper update handles the "Portfolio Change" scenario.
+                    // Here we just ensure consistency on load/calc.
+                    withdrawalRateInput.value = parseFloat((withdrawRate * 100).toFixed(4));
+                } else {
+                    withdrawRate = 0;
+                }
             }
 
 
@@ -811,7 +833,12 @@
                     }
                 }
 
-                if (simBal > 0) successes++;
+                // SUCCESS CONDITION FIX: 
+                // A run is only a success if it NEVER failed (never hit zero during the simulation)
+                // We do NOT check simBal > 0 at the end, because zombie portfolios (living off pension but 0 assets) 
+                // are technically "failed" portfolios in FIRE context.
+                if (runFailedStep === Infinity) successes++;
+                
                 finalBalances.push(simBal);
                 
                 // Check if this was the earliest failure so far
@@ -871,14 +898,6 @@
                 const medianBal = getMedian(agg.balances);
                 medianPathData.push(medianBal);
 
-                // For table, we need flows. Flows for Year i lead to Balance i. 
-                // However, Year 0 is just "Start". 
-                // Let's print rows 0 to N.
-                // Row 0 is "Start". Withdrawal/Income/Growth for year 0 are technically null/future.
-                // Standard convention: Row 1 shows activity during Year 1 leading to End Balance 1.
-                // Let's just match the previous format: Year, Age, StartBal, Withdraw, Income, Growth, EndBal
-                // StartBal of Year i = EndBal of Year i-1.
-                
                 if(i > 0) {
                     const prevMedianBal = medianPathData[i-1];
                     const medianWithdraw = getMedian(agg.withdrawals);
@@ -899,14 +918,7 @@
                         <td class="p-4 text-right font-mono text-purple-400">${formatCurrency(realBal)}</td>
                     `;
                     tbody.appendChild(tr);
-                } else {
-                    // Year 0 Row (Initial State)
-                    // It's a bit awkward to show "Growth" for year 0 in this format. 
-                    // Usually projection tables start at Year 1. 
-                    // Let's just skip row 0 in the table, or show it as "Starting".
-                    // The previous code showed Year 0 with full stats which was confusing.
-                    // Let's start the table at Year 1 (Future).
-                }
+                } 
             }
 
 
@@ -1008,21 +1020,32 @@
                 const total = getTotalPortfolio();
                 document.getElementById('displayTotalPortfolio').innerText = formatCurrency(total);
                 
-                // Logic: Rate is KING. Update Dollar Amount.
-                const rate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
-                document.getElementById('withdrawalAmount').value = formatCurrency(total * rate);
+                // Logic: Amount is KING. Update Rate.
+                const amount = parseCurrencyInput(document.getElementById('withdrawalAmount').value);
+                if (total > 0) {
+                    const rate = (amount / total) * 100;
+                    document.getElementById('withdrawalRate').value = parseFloat(rate.toFixed(4)); 
+                }
             }
         });
 
         // Initialize
         window.onload = function() {
             // Load saved data FIRST
-            loadData();
+            const dataLoaded = loadData();
             
             // Set initial dynamic labels if not already done by loadData
             const incomeSlider = document.getElementById('currentIncomeEnd');
             document.getElementById('currentIncomeEndLabel').innerText = new Date().getFullYear() + parseInt(incomeSlider.value);
             
+            // If no data was loaded (first visit), force sync the Amount based on the default Rate (4%)
+            // Otherwise, the "Amount is Master" logic would see $0 default and overwrite the rate to 0%
+            if (!dataLoaded) {
+                const total = getTotalPortfolio();
+                const defaultRate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
+                document.getElementById('withdrawalAmount').value = formatCurrency(total * defaultRate);
+            }
+
             calculate();
         };
 
