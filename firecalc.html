@@ -327,6 +327,11 @@
                                 <div class="relative group flex flex-col">
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Fixed Income (%)</label>
+                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                                Expected annual return for Bonds, GICs, and Cash equivalents. This portion of the portfolio is treated as having zero volatility in this simulation.
+                                            </div>
+                                        </i>
                                     </div>
                                     <input type="number" step="0.1" id="bondReturn" value="2.5" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
@@ -392,8 +397,9 @@
                         </div>
                     </div>
 
+                    <!-- Renamed Recalculate to Re-roll Simulation -->
                     <button id="calcBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded transition duration-200 shadow-lg shadow-emerald-900/50">
-                        <i class="fa-solid fa-calculator mr-2"></i> Recalculate
+                        <i class="fa-solid fa-dice mr-2"></i> Recalculate (new seed)
                     </button>
                     
                     <!-- Reset Button -->
@@ -492,11 +498,10 @@
         const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
         // SEEDED Random Number Generator (Linear Congruential Generator)
-        // This ensures that the Monte Carlo "randomness" is the exact same every time 
-        // the calculation runs, preventing the graph from jumping when clicking input fields.
-        let seed = 1;
+        let masterSeed = 1; // Default seed
+        
         function seededRandom() {
-            var x = Math.sin(seed++) * 10000;
+            var x = Math.sin(masterSeed++) * 10000;
             return x - Math.floor(x);
         }
 
@@ -528,7 +533,6 @@
             const data = {};
             
             inputs.forEach(input => {
-                // If it is a currency input, we want to save the raw number, not the string "$100,000"
                 if(input.classList.contains('currency-input')) {
                     data[input.id] = parseCurrencyInput(input.value);
                 } 
@@ -539,7 +543,6 @@
                     data[input.id] = input.value;
                 }
             });
-            // Also explicitly save Withdrawal Amount (it's currency-input but not save-input class yet? check below)
             data['withdrawalAmount'] = parseCurrencyInput(document.getElementById('withdrawalAmount').value);
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -552,12 +555,10 @@
             try {
                 const data = JSON.parse(stored);
                 
-                // Populate fields
                 for (const [id, value] of Object.entries(data)) {
                     const input = document.getElementById(id);
                     if (input) {
                         if (input.classList.contains('currency-input')) {
-                            // If it's a currency input, apply formatting so it looks nice on load
                             input.value = formatCurrency(value);
                         } 
                         else if(input.type === 'checkbox') {
@@ -569,12 +570,11 @@
                     }
                 }
 
-                // Update explicit labels that depend on inputs
+                // Update dependent labels
                 const stocks = document.getElementById('stockAlloc').value;
                 const bonds = 100 - stocks;
                 document.getElementById('mixLabel').innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
 
-                // Update dynamic sliders with loaded values
                 const incomeSlider = document.getElementById('currentIncomeEnd');
                 document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
                 
@@ -625,16 +625,7 @@
                 }
 
                 e.target.value = formatCurrency(val);
-                
-                // PERFORMANCE OPTIMIZATION:
-                // Only calculate/save if the value actually changed numerically.
-                // This prevents graph jitter (re-seeding) on simple focus/blur without edits.
-                // Note: We need a way to know previous value. 
-                // Since this is just visual jitter, and we implemented SEEDED RNG, this check is less critical now,
-                // but good practice.
-                // However, since we now have Seeded RNG, calling calculate() is safe (idempotent).
                 calculate(); 
-                
                 if(input.classList.contains('save-input')) saveData(); 
             });
             
@@ -657,7 +648,6 @@
                 if(input.classList.contains('save-input')) saveData();
             };
             input.addEventListener('change', enforceLimit);
-            // input.addEventListener('blur', enforceLimit); // Change is sufficient usually, blur duplicates
         });
 
         // --- Slider Logic ---
@@ -670,10 +660,10 @@
             mixLabel.innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
             calculate();
         });
-        stockSlider.addEventListener('change', saveData); // Save on release
+        stockSlider.addEventListener('change', saveData); 
 
         
-        // --- Sliders for Years (Current/Side Income and Other Income) ---
+        // --- Sliders for Years ---
         const yearsInput = document.getElementById('years');
         const incomeSlider = document.getElementById('currentIncomeEnd');
         const incomeLabel = document.getElementById('currentIncomeEndLabel');
@@ -689,10 +679,6 @@
             incomeSlider.min = currentYearGlobal;
             incomeSlider.max = maxYear;
             
-            // Adjust value if out of bounds (but default to roughly 5 years from now if first load)
-            // If the user's saved value is within the new range, keep it. If out of bounds, clamp it.
-            // But on fresh load, 'value' attribute is set. 
-            // We just ensure it respects the new max.
             if (currentIncVal > maxYear) incomeSlider.value = maxYear;
             if (currentIncVal < currentYearGlobal) incomeSlider.value = currentYearGlobal;
             incomeLabel.innerText = incomeSlider.value;
@@ -719,10 +705,8 @@
         });
         otherIncomeStartSlider.addEventListener('change', saveData);
         
-        // Update slider max when years change
         yearsInput.addEventListener('input', () => {
             updateSliderRanges();
-            // calc triggered via change event on years input listener
         });
 
         
@@ -744,7 +728,6 @@
              // Rate limit check
              let val = parseFloat(e.target.value);
              if (val > 50) val = 50; 
-             // Note: can't easily force value rewrite while typing without annoyance, usually handled on blur
              
              const rate = val / 100;
              const total = getTotalPortfolio();
@@ -765,7 +748,6 @@
             const total = getTotalPortfolio();
             
             if(total > 0) {
-                // If checking limit while typing? No, check limit on blur (handled above in generic currency handler)
                 const rate = (amount / total) * 100;
                 withdrawalRateInput.value = parseFloat(rate.toFixed(4));
             }
@@ -775,9 +757,33 @@
 
         // --- Main Logic ---
         function calculate() {
-            // RESET RANDOM SEED EVERY TIME
-            // This ensures the graph is deterministic based on inputs
-            seed = 1;
+            // Note: We do NOT reset seed=1 here anymore.
+            // Why? Because we want the seed to stay the same across input events (no jitter).
+            // But we do want it to change when the button is clicked.
+            // The button click handler handles seed reset.
+            // If we reset seed=1 here, the button would fail to work because this function
+            // runs after the button updates the seed.
+            // HOWEVER: We need a way to maintain the SAME seed sequence for the current view.
+            // So we need a `currentRunSeed` that persists across calculate() calls
+            // until the button is clicked.
+            
+            // We use `masterSeed` as the starting point.
+            // We need a local working variable to not corrupt the master.
+            let workingSeed = masterSeed;
+            
+            // Helper for this run
+            function getNextRandom() {
+                var x = Math.sin(workingSeed++) * 10000;
+                return x - Math.floor(x);
+            }
+            // Override the global randn for this scope (simpler than passing args)
+            const localRandn = () => {
+                let u = 0, v = 0;
+                while(u === 0) u = getNextRandom(); 
+                while(v === 0) v = getNextRandom();
+                return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+            };
+
 
             // 1. Gather Inputs
             const age = parseInt(document.getElementById('age').value);
@@ -806,30 +812,26 @@
             const otherIncomeYear = parseInt(document.getElementById('otherIncomeStart').value);
             
             const currentIncomeAmt = parseCurrencyInput(document.getElementById('currentIncome').value);
-            const currentIncomeEndYear = parseInt(incomeSlider.value); // Now absolute year
+            const currentIncomeEndYear = parseInt(incomeSlider.value); 
 
-            // --- MASTER LOGIC: Determining Initial Withdrawal ---
-            // Unless the user is specifically typing in the Rate box (activeElement),
-            // we treat the Amount ($) as the master value.
-            
+            // --- MASTER LOGIC ---
             let initialWithdrawalDollar;
-            let withdrawRate; // We just calculate this for display/checking, simulation uses dollar
+            let withdrawRate; 
 
             if (document.activeElement === withdrawalRateInput) {
                 // Rate is Master
                 withdrawRate = parseFloat(withdrawalRateInput.value) / 100;
                 initialWithdrawalDollar = totalPortfolio * withdrawRate;
-                // Update Amount visual to match
                 withdrawalAmountInput.value = formatCurrency(initialWithdrawalDollar);
             } else {
-                // Amount is Master (default)
+                // Amount is Master
                 initialWithdrawalDollar = parseCurrencyInput(withdrawalAmountInput.value);
-                
-                // Back-calculate Rate for visual consistency
                 if (totalPortfolio > 0) {
                     withdrawRate = initialWithdrawalDollar / totalPortfolio;
-                    // Limit Rate Visual
-                    withdrawalRateInput.value = parseFloat((withdrawRate * 100).toFixed(4));
+                    // Dont update input while focused
+                    if(document.activeElement !== withdrawalAmountInput) {
+                         withdrawalRateInput.value = parseFloat((withdrawRate * 100).toFixed(4));
+                    }
                 } else {
                     withdrawRate = 0;
                 }
@@ -837,32 +839,40 @@
 
 
             // --- Blended Return Calculation ---
-            // "Cash" account always earns bondReturn.
-            // "Invested" accounts (TFSA/RRSP/NonReg) earn based on mix.
             const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
             const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
             const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
             const cash = parseCurrencyInput(document.getElementById('cash').value);
             
-            const investedAssets = tfsa + rrsp + nonreg;
-            const cashAssets = cash;
-            const total = totalPortfolio > 0 ? totalPortfolio : 1;
+            const wInvested = (tfsa + rrsp + nonreg + cash > 0) ? (tfsa + rrsp + nonreg) / totalPortfolio : 0;
+            // Correction: This logic was a bit simplified in previous versions. 
+            // Let's stick to the mix slider logic applied to "Investable Assets" vs Cash.
+            // Simplified: Stock% applies to (TFSA+RRSP+NonReg). Cash is 100% Fixed.
             
-            const wInvested = investedAssets / total;
-            const wCash = cashAssets / total;
-
-            const wStockGlobal = wInvested * stockPct;
-            const wBondGlobal = wInvested * bondPct;
-            const wCashGlobal = wCash; 
+            const investedTotal = tfsa + rrsp + nonreg;
+            const cashTotal = cash;
+            const grandTotal = investedTotal + cashTotal;
+            
+            // Weighted returns
+            // Stock portion = Invested * Stock%
+            // Bond portion = Invested * Bond% + Cash
+            
+            const totalStock = investedTotal * stockPct;
+            const totalBond = (investedTotal * bondPct) + cashTotal;
+            
+            // Weights for overall portfolio
+            const wStock = (grandTotal > 0) ? totalStock / grandTotal : 0;
+            const wBond = (grandTotal > 0) ? totalBond / grandTotal : 0;
 
             // Gross Blended Return
-            let blendedMean = (wStockGlobal * marketMean) + (wBondGlobal * bondReturn) + (wCashGlobal * bondReturn);
+            let blendedMean = (wStock * marketMean) + (wBond * bondReturn);
             
-            // Apply MER Fees (Net Return)
+            // Apply MER Fees (Net Return) - assuming MER applies to whole portfolio for simplicity
+            // or maybe just invested? Let's keep it simple: applies to growth.
             blendedMean = blendedMean - merFee;
 
-            // Standard Deviation (remains same assumption: only stocks vary significantly)
-            const blendedStdDev = wStockGlobal * marketStdDev;
+            // Standard Deviation 
+            const blendedStdDev = wStock * marketStdDev;
 
 
             // --- Monte Carlo Simulation (100 Runs) ---
@@ -871,13 +881,9 @@
             let successes = 0;
             let finalBalances = [];
             
-            // Track earliest failure for highlighting
             let earliestFailureIndex = -1;
             let minFailureStep = Infinity;
 
-            // Store annual data for aggregation (Median calculation)
-            // Array of Arrays. Year 0 to Years.
-            // Each index holds an object: { balances: [], withdrawals: [], incomes: [], growths: [] }
             let yearlyAggregates = Array(years + 1).fill(null).map(() => ({
                 balances: [],
                 withdrawals: [],
@@ -895,12 +901,13 @@
                 let simWithdrawal = initialWithdrawalDollar;
                 let dataPoints = [simBal]; 
                 
-                let runFailedStep = Infinity; // Track failure year for this specific run
+                let runFailedStep = Infinity; 
 
                 for (let i = 1; i <= years; i++) {
                     const year = currentYearGlobal + i;
                     
-                    const randomReturn = blendedMean + (blendedStdDev * randn_bm());
+                    // Use localRandn wrapper
+                    const randomReturn = blendedMean + (blendedStdDev * localRandn());
                     
                     let simIncome = 0;
                     if (year >= otherIncomeYear) {
@@ -925,13 +932,11 @@
                         }
                     }
 
-                    // Store metrics for this year
                     yearlyAggregates[i].balances.push(end);
                     yearlyAggregates[i].withdrawals.push(simWithdrawal);
                     yearlyAggregates[i].incomes.push(simIncome);
                     yearlyAggregates[i].growths.push(growth);
 
-                    // Update withdrawal for next year
                     let nextWithdrawal = simWithdrawal;
                     if (flexibleSpending && randomReturn < 0) {
                         nextWithdrawal = simWithdrawal;
@@ -942,21 +947,15 @@
                     simBal = end;
                     simWithdrawal = nextWithdrawal;
                     
-                    // Stop drawing the line if it has hit zero
                     if (dataPoints[dataPoints.length - 1] > 0) {
                         dataPoints.push(simBal);
                     }
                 }
 
-                // SUCCESS CONDITION FIX: 
-                // A run is only a success if it NEVER failed (never hit zero during the simulation)
-                // We do NOT check simBal > 0 at the end, because zombie portfolios (living off pension but 0 assets) 
-                // are technically "failed" portfolios in FIRE context.
                 if (runFailedStep === Infinity) successes++;
                 
                 finalBalances.push(simBal);
                 
-                // Check if this was the earliest failure so far
                 if (runFailedStep < minFailureStep) {
                     minFailureStep = runFailedStep;
                     earliestFailureIndex = s;
@@ -965,30 +964,25 @@
                 simulationDatasets.push({
                     label: `Sim ${s}`,
                     data: dataPoints,
-                    borderColor: 'rgba(56, 189, 248, 0.1)', // Default faint blue
+                    borderColor: 'rgba(56, 189, 248, 0.1)', 
                     borderWidth: 1,
                     pointRadius: 0,
                     fill: false,
                     tension: 0.4,
-                    order: 10 // Draw blue lines deep in the stack
+                    order: 10 
                 });
             }
             
-            // Highlight the earliest failure line
             if (earliestFailureIndex !== -1) {
                 const failSet = simulationDatasets[earliestFailureIndex];
-                failSet.borderColor = 'rgba(239, 68, 68, 0.9)'; // Red-500, high opacity
+                failSet.borderColor = 'rgba(239, 68, 68, 0.9)'; 
                 failSet.borderWidth = 2;
                 failSet.label = "Earliest Failure";
-                failSet.order = 2; // Draw on top of blues, but below Median (order 1)
+                failSet.order = 2; 
             }
 
-            // Stats Calculation
-            // We use getMedian() here to ensure it matches the Graph/Table logic exactly
-            // (Average of middle two numbers for even set size), rather than just picking the upper middle.
+            // Stats
             const medianVal = getMedian(finalBalances); 
-            
-            // For percentiles, we sort first (getMedian sorts internally, but we need sorted array for p10/p90)
             finalBalances.sort((a, b) => a - b);
             const p10Val = finalBalances[Math.floor(finalBalances.length * 0.1)];
             const p90Val = finalBalances[Math.floor(finalBalances.length * 0.9)];
@@ -999,20 +993,16 @@
             document.getElementById('p90End').innerText = formatCurrency(p90Val);
 
 
-            // --- Generate Median Path Table & Graph Data ---
-            // We iterate through our aggregated year data and calculate medians
+            // --- Generate Median Path Table ---
             const medianPathData = [];
             const tbody = document.getElementById('projectionBody');
             tbody.innerHTML = '';
 
-            // We iterate 0 to Years. 
-            // Note: Year 0 only has balances. withdraw/income/growth happen during the year (index 1+)
             for(let i=0; i<=years; i++) {
                 const year = currentYearGlobal + i;
                 const ageNow = age + i;
                 const agg = yearlyAggregates[i];
 
-                // Median Balance
                 const medianBal = getMedian(agg.balances);
                 medianPathData.push(medianBal);
 
@@ -1045,8 +1035,6 @@
             const labels = [];
             for(let i=0; i<=years; i++) labels.push(currentYearGlobal + i);
 
-            // Determine max Y scale to prevent outliers from squashing the view
-            // Use 125% of the 90th percentile, or at least 125% of the starting portfolio if p90 is a crash
             const yMax = Math.max(p90Val, totalPortfolio) * 1.25;
 
             const avgDataset = {
@@ -1101,9 +1089,7 @@
                             ticks: {
                                 color: '#94a3b8',
                                 callback: function(value, index, values) {
-                                    // Hide the top tick (often a messy calculated max value)
                                     if (index === values.length - 1) return null;
-
                                     if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
                                     if (value >= 1000000) return '$' + (value / 1000000).toFixed(0) + 'M';
                                     if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'k';
@@ -1126,7 +1112,12 @@
         }
 
         // --- Event Listeners ---
-        document.getElementById('calcBtn').addEventListener('click', calculate);
+        // Change Recalculate Logic to Update Seed
+        document.getElementById('calcBtn').addEventListener('click', () => {
+            // Pick a new random master seed
+            masterSeed = Math.floor(Math.random() * 100000);
+            calculate();
+        });
         
         // Save inputs generally on change
         document.querySelectorAll('.save-input').forEach(input => {
