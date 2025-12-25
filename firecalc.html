@@ -1,0 +1,887 @@
+<!-- 
+    =======================================================================
+    © 2025 Corwin. All Rights Reserved.
+    
+    Official Tool for: https://cor.win/
+    
+    This source code is the intellectual property of Corwin. 
+    Unauthorized reproduction, distribution, modification, or use of this 
+    code for commercial purposes is strictly prohibited without express 
+    written permission.
+    =======================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canadian FIRE Calculator & Monte Carlo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom Scrollbar for table */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* Robust Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            width: 100%; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #10b981; /* Emerald 500 */
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155; /* Slate 700 */
+            border-radius: 2px;
+        }
+        
+        input[type=range]:focus::-webkit-slider-runnable-track {
+            background: #475569;
+        }
+        
+        /* Firefox */
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 16px;
+            width: 16px;
+            border: none;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+        }
+
+        /* Tooltip Logic */
+        .tooltip-trigger:hover .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tooltip-content {
+            transform: translateY(4px);
+            transition: all 0.2s ease-out;
+            /* Explicitly force clean sans-serif font stack for tooltips */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-emerald-400"><i class="fa-solid fa-leaf mr-2"></i>Canadian FIRE Calc</h1>
+                <p class="text-slate-400 text-sm mt-1">Financial Independence, Retire Early • Monte Carlo Simulation</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-right">
+                <div class="text-xs text-slate-500 uppercase tracking-wider">Total Portfolio</div>
+                <div class="text-2xl font-bold text-white" id="displayTotalPortfolio">$0.00</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- INPUTS COLUMN -->
+            <div class="lg:col-span-3 space-y-6">
+                
+                <!-- Section: Personal -->
+                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg relative">
+                    <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Profile</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <div class="flex items-center mb-1">
+                                <label class="block text-xs font-medium text-slate-400">Current Age</label>
+                            </div>
+                            <input type="number" id="age" value="42" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div class="relative group">
+                            <div class="flex items-center mb-1">
+                                <label class="block text-xs font-medium text-slate-400">Years to Project</label>
+                            </div>
+                            <input type="number" id="years" value="50" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Portfolio -->
+                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg">
+                    <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Assets (CAD)</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="relative group">
+                            <div class="flex items-center mb-1">
+                                <label class="block text-xs font-medium text-slate-400">TFSA</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                        Tax-Free Savings Account. Investment growth and withdrawals are completely tax-free.
+                                    </div>
+                                </i>
+                            </div>
+                            <input type="text" id="tfsa" value="$100,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div class="relative group">
+                            <div class="flex items-center mb-1">
+                                <label class="block text-xs font-medium text-slate-400">RRSP / LIRA</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                        Registered Retirement Savings Plan. Growth is tax-deferred, but withdrawals are taxed as income.
+                                    </div>
+                                </i>
+                            </div>
+                            <input type="text" id="rrsp" value="$250,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div class="relative group">
+                            <div class="flex items-center mb-1">
+                                <label class="block text-xs font-medium text-slate-400">Non-Registered</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                        Taxable investment account. Interest, dividends, and capital gains are subject to tax.
+                                    </div>
+                                </i>
+                            </div>
+                            <input type="text" id="nonreg" value="$50,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        
+                        <!-- Separator for Cash -->
+                        <div class="border-t border-slate-700 my-2 pt-2 relative group">
+                             <div class="flex items-center mb-1">
+                                <label class="block text-xs font-medium text-slate-400">Cash / Money Market</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                        High Interest Savings or Cash equivalents. Low risk, earns the Fixed Income rate.
+                                    </div>
+                                </i>
+                             </div>
+                             <input type="text" id="cash" value="$20,000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                             <p class="text-[10px] text-slate-500 mt-1">Excluded from mix. Earns Fixed Rate only.</p>
+                        </div>
+                    </div>
+
+                    <!-- Investment Mix Slider -->
+                    <div class="mt-6 pt-4 border-t border-slate-700">
+                        <div class="flex items-center mb-2">
+                            <label class="block text-xs font-medium text-emerald-400">Investment Mix (Reg/Non-Reg)</label>
+                            <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                    Determines the risk/return profile. Higher stock allocation means higher potential returns but more volatility.
+                                </div>
+                            </i>
+                        </div>
+                        <div class="relative pt-1 px-1">
+                            <input type="range" id="stockAlloc" min="0" max="100" value="80" 
+                                class="save-input w-full h-2 rounded-lg cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-mono uppercase">
+                                <span>Bonds</span>
+                                <span id="mixLabel" class="text-white font-bold">80% Stocks</span>
+                                <span>Stocks</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Variables -->
+                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg">
+                    <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Assumptions</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="relative group flex flex-col">
+                                <div class="flex items-center mb-2">
+                                    <label class="block text-xs font-medium text-slate-400">Withdrawal Rate (%)</label>
+                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            The % of your portfolio you spend in Year 1. It is adjusted for inflation in subsequent years.
+                                        </div>
+                                    </i>
+                                </div>
+                                <input type="number" step="0.1" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            </div>
+                            <div class="relative group flex flex-col">
+                                <div class="flex items-center mb-2">
+                                    <label class="block text-xs font-medium text-slate-400">Inflation (%)</label>
+                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            The rate at which money loses purchasing power. 3% is a conservative long-term estimate.
+                                        </div>
+                                    </i>
+                                </div>
+                                <input type="number" step="0.1" id="inflation" value="3.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            </div>
+                        </div>
+                        
+                        <!-- Dynamic Withdrawal Amount Display -->
+                        <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50 text-center">
+                            <span class="text-xs text-slate-500">First Year Withdrawal</span>
+                            <div class="text-emerald-400 font-bold font-mono" id="withdrawalAmountDisplay">$0</div>
+                        </div>
+
+                        <!-- Returns Section -->
+                        <div class="space-y-3 pt-2">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="relative group flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <label class="block text-xs font-medium text-slate-400">Stock Return (%)</label>
+                                    </div>
+                                    <input type="number" step="0.1" id="marketReturn" value="7.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                </div>
+                                <div class="relative group flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <label class="block text-xs font-medium text-slate-400">Stock Variance (%)</label>
+                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                                Standard Deviation. Higher means bigger swings (ups and downs). 12-15% is typical for equities.
+                                            </div>
+                                        </i>
+                                    </div>
+                                    <input type="number" step="0.1" id="marketVariance" value="12.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="relative group flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <label class="block text-xs font-medium text-slate-400">Fixed Income (%)</label>
+                                    </div>
+                                    <input type="number" step="0.1" id="bondReturn" value="2.5" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                </div>
+                                <div class="relative group flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <label class="block text-xs font-medium text-slate-400">Inv. Fees/MER (%)</label>
+                                         <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                                Management Expense Ratio. Deducted annually from portfolio growth.
+                                            </div>
+                                        </i>
+                                    </div>
+                                    <input type="number" step="0.01" id="merFee" value="0.25" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Income Sections -->
+                        <div class="pt-4 mt-2 border-t border-slate-700 space-y-4">
+                            
+                            <!-- Current Income -->
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <label class="block text-xs font-medium text-emerald-400">Current / Side Income</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            Income from part-time work or side hustles during early retirement years.
+                                        </div>
+                                    </i>
+                                </div>
+                                <input type="text" id="currentIncome" value="$0" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition" placeholder="$0">
+                                
+                                <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
+                                    <span>Until Year: <span id="currentIncomeEndLabel" class="text-white font-bold">2030</span></span>
+                                </div>
+                                <div class="relative pt-1 px-1">
+                                    <input type="range" id="currentIncomeEnd" min="0" max="30" value="5" 
+                                    class="save-input w-full h-2 rounded-lg cursor-pointer">
+                                </div>
+                            </div>
+
+                            <!-- Other Income -->
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <label class="block text-xs font-medium text-emerald-400">OAS / CPP / Pension</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            Government benefits or defined benefit pensions starting later in life (typically age 65+).
+                                        </div>
+                                    </i>
+                                </div>
+                                <input type="text" id="otherIncome" value="$18,000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition">
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Start Year</label>
+                                <input type="number" id="otherIncomeStart" value="2048" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <button id="calcBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded transition duration-200 shadow-lg shadow-emerald-900/50">
+                        <i class="fa-solid fa-calculator mr-2"></i> Recalculate
+                    </button>
+                    
+                    <!-- Reset Button -->
+                    <button id="resetBtn" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium py-2 px-4 rounded transition duration-200 text-xs">
+                         Reset to Defaults
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- RESULTS COLUMN -->
+            <div class="lg:col-span-9 space-y-6">
+                
+                <!-- Chart Section -->
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-lg h-[450px] relative">
+                    <div class="flex justify-between items-center absolute top-4 left-4 right-4 z-10 pointer-events-none">
+                         <h3 class="text-sm font-semibold text-slate-300 bg-slate-800/80 px-2 py-1 rounded">
+                            Monte Carlo Simulation (100 Runs)
+                        </h3>
+                    </div>
+                   
+                    <div class="h-full w-full pt-8">
+                        <canvas id="fireChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                        <div class="text-xs text-slate-500">Success Rate (> $0)</div>
+                        <div class="text-xl font-bold text-emerald-400" id="successRate">--%</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                        <div class="text-xs text-slate-500">Median End Balance</div>
+                        <div class="text-xl font-bold text-white" id="medianEnd">--</div>
+                    </div>
+                     <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                        <div class="text-xs text-slate-500">10th Percentile (Poor)</div>
+                        <div class="text-xl font-bold text-rose-400" id="p10End">--</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                        <div class="text-xs text-slate-500">90th Percentile (Great)</div>
+                        <div class="text-xl font-bold text-blue-400" id="p90End">--</div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-lg overflow-hidden flex flex-col h-[700px]">
+                    <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800">
+                        <h3 class="font-semibold text-slate-300">Detailed Projection (Average Scenario)</h3>
+                        <span class="text-xs text-slate-500 italic">Values are nominal unless specified</span>
+                    </div>
+                    
+                    <div class="overflow-auto custom-scrollbar flex-grow">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900 sticky top-0 text-xs text-slate-400 uppercase tracking-wider font-semibold z-10 shadow-sm">
+                                <tr>
+                                    <th class="p-4">Year</th>
+                                    <th class="p-4">Age</th>
+                                    <th class="p-4 text-right">Start Bal</th>
+                                    <th class="p-4 text-right">Withdrawal</th>
+                                    <th class="p-4 text-right">Other Inc</th>
+                                    <th class="p-4 text-right text-emerald-500">Growth</th>
+                                    <th class="p-4 text-right text-white">End Bal (Nominal)</th>
+                                    <th class="p-4 text-right text-purple-400">Buying Power (Today's $)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectionBody" class="text-sm divide-y divide-slate-700 text-slate-300">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="text-center text-xs text-slate-500 mt-8 pb-4 space-y-1">
+            <p>Disclaimer: This tool is for educational purposes only. Market returns use Gaussian distribution for Monte Carlo.</p>
+            <p class="text-slate-600">Note: All values are <strong>PRE-TAX</strong>. Investment fees are deducted from growth. Actual tax liability depends on your specific Provincial/Federal situation.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Utilities ---
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(num);
+        };
+
+        const parseCurrencyInput = (val) => {
+             const clean = String(val).replace(/[^0-9.]/g, '');
+             return parseFloat(clean) || 0;
+        }
+
+        // Gaussian Random Number Generator
+        function randn_bm() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random(); 
+            while(v === 0) v = Math.random();
+            return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        }
+
+        let myChart = null;
+        const currentYearGlobal = new Date().getFullYear();
+
+        // --- STORAGE LOGIC ---
+        const STORAGE_KEY = 'canadianFireCalcData';
+
+        function saveData() {
+            const inputs = document.querySelectorAll('.save-input');
+            const data = {};
+            
+            inputs.forEach(input => {
+                // If it is a currency input, we want to save the raw number, not the string "$100,000"
+                if(input.classList.contains('currency-input')) {
+                    data[input.id] = parseCurrencyInput(input.value);
+                } else {
+                    data[input.id] = input.value;
+                }
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return;
+
+            try {
+                const data = JSON.parse(stored);
+                
+                // Populate fields
+                for (const [id, value] of Object.entries(data)) {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        if (input.classList.contains('currency-input')) {
+                            // If it's a currency input, apply formatting so it looks nice on load
+                            input.value = formatCurrency(value);
+                        } else {
+                            input.value = value;
+                        }
+                    }
+                }
+
+                // Update explicit labels that depend on inputs
+                const stocks = document.getElementById('stockAlloc').value;
+                const bonds = 100 - stocks;
+                document.getElementById('mixLabel').innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
+
+                const incomeSlider = document.getElementById('currentIncomeEnd');
+                document.getElementById('currentIncomeEndLabel').innerText = currentYearGlobal + parseInt(incomeSlider.value);
+
+            } catch (e) {
+                console.error("Error loading saved data", e);
+            }
+        }
+        
+        function resetData() {
+            if(confirm("Are you sure you want to reset all values to defaults?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+
+        // --- Input Formatting Logic ---
+        const currencyInputs = document.querySelectorAll('.currency-input');
+        
+        currencyInputs.forEach(input => {
+            input.addEventListener('focus', (e) => {
+                const val = parseCurrencyInput(e.target.value);
+                e.target.value = val === 0 ? '' : val;
+            });
+
+            input.addEventListener('blur', (e) => {
+                const val = parseCurrencyInput(e.target.value);
+                e.target.value = formatCurrency(val);
+                calculate(); 
+                saveData(); // Save on blur
+            });
+            
+            input.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') e.target.blur();
+            });
+        });
+
+        // --- Slider Logic ---
+        const stockSlider = document.getElementById('stockAlloc');
+        const mixLabel = document.getElementById('mixLabel');
+
+        stockSlider.addEventListener('input', (e) => {
+            const stocks = e.target.value;
+            const bonds = 100 - stocks;
+            mixLabel.innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
+            calculate();
+        });
+        stockSlider.addEventListener('change', saveData); // Save on release
+
+        // --- Current Income Slider Logic ---
+        const incomeSlider = document.getElementById('currentIncomeEnd');
+        const incomeLabel = document.getElementById('currentIncomeEndLabel');
+        
+        incomeSlider.addEventListener('input', (e) => {
+            const yearsToAdd = parseInt(e.target.value);
+            incomeLabel.innerText = currentYearGlobal + yearsToAdd;
+            calculate();
+        });
+        incomeSlider.addEventListener('change', saveData); // Save on release
+
+
+        // --- Main Logic ---
+        function calculate() {
+            // 1. Gather Inputs
+            const age = parseInt(document.getElementById('age').value);
+            const years = parseInt(document.getElementById('years').value);
+            
+            // Portfolio
+            const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
+            const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
+            const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
+            const cash = parseCurrencyInput(document.getElementById('cash').value);
+            const totalPortfolio = tfsa + rrsp + nonreg + cash;
+
+            document.getElementById('displayTotalPortfolio').innerText = formatCurrency(totalPortfolio);
+
+            // Assumptions
+            const withdrawRate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
+            const inflationRate = parseFloat(document.getElementById('inflation').value) / 100;
+            const marketMean = parseFloat(document.getElementById('marketReturn').value) / 100;
+            const marketStdDev = parseFloat(document.getElementById('marketVariance').value) / 100;
+            const bondReturn = parseFloat(document.getElementById('bondReturn').value) / 100;
+            const merFee = parseFloat(document.getElementById('merFee').value) / 100;
+
+            // Investment Mix
+            const stockPct = parseInt(stockSlider.value) / 100;
+            const bondPct = 1 - stockPct;
+
+            // Income Sources
+            const otherIncomeAmt = parseCurrencyInput(document.getElementById('otherIncome').value);
+            const otherIncomeYear = parseInt(document.getElementById('otherIncomeStart').value);
+            
+            const currentIncomeAmt = parseCurrencyInput(document.getElementById('currentIncome').value);
+            const currentIncomeEndYear = currentYearGlobal + parseInt(incomeSlider.value);
+
+            // Initial Withdrawal
+            const initialWithdrawalDollar = totalPortfolio * withdrawRate;
+            document.getElementById('withdrawalAmountDisplay').innerText = formatCurrency(initialWithdrawalDollar);
+
+            // --- Blended Return Calculation ---
+            // "Cash" account always earns bondReturn.
+            // "Invested" accounts (TFSA/RRSP/NonReg) earn based on mix.
+            const investedAssets = tfsa + rrsp + nonreg;
+            const cashAssets = cash;
+            const total = totalPortfolio > 0 ? totalPortfolio : 1;
+            
+            const wInvested = investedAssets / total;
+            const wCash = cashAssets / total;
+
+            const wStockGlobal = wInvested * stockPct;
+            const wBondGlobal = wInvested * bondPct;
+            const wCashGlobal = wCash; 
+
+            // Gross Blended Return
+            let blendedMean = (wStockGlobal * marketMean) + (wBondGlobal * bondReturn) + (wCashGlobal * bondReturn);
+            
+            // Apply MER Fees (Net Return)
+            blendedMean = blendedMean - merFee;
+
+            // Standard Deviation (remains same assumption: only stocks vary significantly)
+            const blendedStdDev = wStockGlobal * marketStdDev;
+
+
+            // 2. Deterministic Calculation (Table)
+            let tableData = [];
+            let currentBal = totalPortfolio;
+            let currentWithdrawal = initialWithdrawalDollar;
+
+            for (let i = 0; i <= years; i++) {
+                const year = currentYearGlobal + i;
+                const currentAge = age + i;
+                
+                // Income Logic
+                let income = 0;
+                
+                // Add OAS/CPP
+                if (year >= otherIncomeYear) {
+                    income += otherIncomeAmt * Math.pow(1 + inflationRate, i);
+                }
+                // Add Current Income (Part time work)
+                if (year <= currentIncomeEndYear) {
+                    income += currentIncomeAmt * Math.pow(1 + inflationRate, i);
+                }
+
+                const startBal = currentBal;
+                let netFlow = income - currentWithdrawal; 
+                let investable = startBal + netFlow; 
+                
+                if (investable < 0) investable = 0;
+
+                const growth = investable * blendedMean;
+                let endBal = investable + growth;
+
+                // Real Value (Inflation Adjusted)
+                const realBal = endBal / Math.pow(1 + inflationRate, i);
+
+                tableData.push({
+                    year,
+                    age: currentAge,
+                    startBal,
+                    withdrawal: currentWithdrawal,
+                    income,
+                    growth,
+                    endBal,
+                    realBal
+                });
+
+                currentBal = endBal;
+                currentWithdrawal = currentWithdrawal * (1 + inflationRate);
+                if (currentBal <= 0) currentBal = 0;
+            }
+
+            // 3. Render Table
+            const tbody = document.getElementById('projectionBody');
+            tbody.innerHTML = '';
+            tableData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-400">${row.year}</td>
+                    <td class="p-4 text-slate-400">${row.age}</td>
+                    <td class="p-4 text-right font-mono text-slate-300">${formatCurrency(row.startBal)}</td>
+                    <td class="p-4 text-right font-mono text-rose-400">-${formatCurrency(row.withdrawal)}</td>
+                    <td class="p-4 text-right font-mono text-emerald-400">+${formatCurrency(row.income)}</td>
+                    <td class="p-4 text-right font-mono text-emerald-600">${formatCurrency(row.growth)}</td>
+                    <td class="p-4 text-right font-mono font-bold text-white">${formatCurrency(row.endBal)}</td>
+                    <td class="p-4 text-right font-mono text-purple-400">${formatCurrency(row.realBal)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+
+            // 4. Monte Carlo Simulation (100 Runs)
+            const numSimulations = 100;
+            const simulationDatasets = [];
+            let successes = 0;
+            let finalBalances = [];
+
+            for (let s = 0; s < numSimulations; s++) {
+                let simBal = totalPortfolio;
+                let simWithdrawal = initialWithdrawalDollar;
+                let dataPoints = [simBal]; 
+
+                for (let i = 1; i <= years; i++) {
+                    const year = currentYearGlobal + i;
+                    
+                    const randomReturn = blendedMean + (blendedStdDev * randn_bm());
+                    
+                    let simIncome = 0;
+                    if (year >= otherIncomeYear) {
+                        simIncome += otherIncomeAmt * Math.pow(1 + inflationRate, i);
+                    }
+                    if (year <= currentIncomeEndYear) {
+                        simIncome += currentIncomeAmt * Math.pow(1 + inflationRate, i);
+                    }
+
+                    let net = simIncome - simWithdrawal;
+                    let investable = simBal + net;
+                    
+                    if (investable < 0) investable = 0;
+
+                    let growth = investable * randomReturn;
+                    let end = investable + growth;
+
+                    if (end < 0) end = 0;
+
+                    simBal = end;
+                    simWithdrawal = simWithdrawal * (1 + inflationRate);
+                    
+                    dataPoints.push(simBal);
+                }
+
+                if (simBal > 0) successes++;
+                finalBalances.push(simBal);
+
+                simulationDatasets.push({
+                    label: `Sim ${s}`,
+                    data: dataPoints,
+                    borderColor: 'rgba(56, 189, 248, 0.1)', // Very faint blue
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.4
+                });
+            }
+
+            // Stats Calculation
+            finalBalances.sort((a, b) => a - b);
+            
+            const medianVal = finalBalances[Math.floor(finalBalances.length * 0.5)];
+            const p10Val = finalBalances[Math.floor(finalBalances.length * 0.1)];
+            const p90Val = finalBalances[Math.floor(finalBalances.length * 0.9)];
+
+            document.getElementById('medianEnd').innerText = formatCurrency(medianVal);
+            document.getElementById('successRate').innerText = Math.round((successes / numSimulations) * 100) + "%";
+            document.getElementById('p10End').innerText = formatCurrency(p10Val);
+            document.getElementById('p90End').innerText = formatCurrency(p90Val);
+
+
+            // 5. Render Chart
+            const ctx = document.getElementById('fireChart').getContext('2d');
+            const labels = [];
+            for(let i=0; i<=years; i++) labels.push(currentYearGlobal + i);
+
+            const avgDataset = {
+                label: 'Average Market Path',
+                data: tableData.map(r => r.endBal),
+                borderColor: '#fbbf24', // Amber/Gold
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.4,
+                order: 1 
+            };
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [avgDataset, ...simulationDatasets]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.dataset.label === 'Average Market Path') {
+                                        return 'Avg: ' + formatCurrency(context.raw);
+                                    }
+                                    return ''; 
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#334155' },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value / 1000000 + 'M';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // --- Event Listeners ---
+        document.getElementById('calcBtn').addEventListener('click', calculate);
+        
+        // Save inputs generally on change
+        document.querySelectorAll('.save-input').forEach(input => {
+            input.addEventListener('change', () => {
+                saveData();
+                calculate();
+            });
+        });
+        
+        document.getElementById('withdrawalRate').addEventListener('input', calculate);
+        document.getElementById('bondReturn').addEventListener('input', calculate);
+        document.getElementById('merFee').addEventListener('input', calculate);
+        document.getElementById('currentIncome').addEventListener('blur', calculate); 
+        document.getElementById('resetBtn').addEventListener('click', resetData);
+
+        // Auto-update wrapper
+        const portfolioWrapper = document.querySelector('.lg\\:col-span-3'); 
+        portfolioWrapper.addEventListener('input', (e) => {
+            if(e.target.classList.contains('portfolio-input')) {
+                const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
+                const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
+                const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
+                const cash = parseCurrencyInput(document.getElementById('cash').value);
+                const total = tfsa + rrsp + nonreg + cash;
+                
+                document.getElementById('displayTotalPortfolio').innerText = formatCurrency(total);
+                
+                const rate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
+                document.getElementById('withdrawalAmountDisplay').innerText = formatCurrency(total * rate);
+            }
+            if(e.target.id === 'withdrawalRate') {
+                const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
+                const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
+                const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
+                const cash = parseCurrencyInput(document.getElementById('cash').value);
+                const total = tfsa + rrsp + nonreg + cash;
+                const rate = parseFloat(e.target.value) / 100;
+                document.getElementById('withdrawalAmountDisplay').innerText = formatCurrency(total * rate);
+            }
+        });
+
+        // Initialize
+        window.onload = function() {
+            // Load saved data FIRST
+            loadData();
+            
+            // Set initial dynamic labels if not already done by loadData
+            const incomeSlider = document.getElementById('currentIncomeEnd');
+            document.getElementById('currentIncomeEndLabel').innerText = new Date().getFullYear() + parseInt(incomeSlider.value);
+            
+            calculate();
+        };
+
+    </script>
+</body>
+</html>
