@@ -235,7 +235,12 @@
                     <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Assumptions</h2>
                     
                     <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-3 relative">
+                            <!-- Link Icon -->
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[-4px] z-10 text-slate-600 text-xs">
+                                <i class="fa-solid fa-link"></i>
+                            </div>
+
                             <div class="relative group flex flex-col">
                                 <div class="flex items-center mb-2">
                                     <label class="block text-xs font-medium text-slate-400">Withdrawal Rate (%)</label>
@@ -247,10 +252,15 @@
                                 </div>
                                 <input type="number" step="0.1" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
-                            <!-- Replaced display div with input -->
+                            
                             <div class="relative group flex flex-col">
                                 <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-emerald-400">Withdrawal Amount ($)</label>
+                                    <label class="block text-xs font-medium text-slate-400">Withdrawal Amount ($)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                            Total annual spending. This is automatically calculated from the Rate, or you can edit it directly.
+                                        </div>
+                                    </i>
                                 </div>
                                 <input type="text" id="withdrawalAmount" value="$0" class="currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500 transition">
                             </div>
@@ -271,12 +281,16 @@
                             </div>
                             
                             <div class="relative flex flex-col justify-end h-full pb-1">
-                                <label class="flex items-center cursor-pointer group">
+                                <label class="flex items-center cursor-pointer group mb-1">
                                     <input type="checkbox" id="flexibleSpending" class="save-input sr-only peer">
                                     <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
                                     <span class="ms-2 text-xs font-medium text-slate-400 group-hover:text-emerald-400 transition-colors">Flexible Spending</span>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans normal-case text-left">
+                                            If selected, the simulation will skip the annual inflation raise for your withdrawals in any year where the portfolio value drops. This simple strategy significantly improves success rates.
+                                        </div>
+                                    </i>
                                 </label>
-                                <div class="text-[10px] text-slate-500 leading-tight mt-1">Skip inflation raise in down years.</div>
                             </div>
                         </div>
 
@@ -288,7 +302,7 @@
                                         <label class="block text-xs font-medium text-slate-400">Stock Return (%)</label>
                                         <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                             <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Arithmetic Mean. Note: Due to "Volatility Drag", an 8% Average here results in a lower Compound Annual Growth Rate (approx 7.3% CAGR).
+                                                Arithmetic Mean. Note: The projection table automatically adjusts this to the "Geometric Mean" (CAGR) to account for volatility drag, making it realistic.
                                             </div>
                                         </i>
                                     </div>
@@ -420,7 +434,7 @@
                 <!-- Data Table -->
                 <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-lg overflow-hidden flex flex-col h-[700px]">
                     <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800">
-                        <h3 class="font-semibold text-slate-300">Detailed Projection (Average Scenario)</h3>
+                        <h3 class="font-semibold text-slate-300">Detailed Projection (Median Scenario)</h3>
                         <span class="text-xs text-slate-500 italic">Values are nominal unless specified</span>
                     </div>
                     
@@ -472,6 +486,15 @@
             while(u === 0) u = Math.random(); 
             while(v === 0) v = Math.random();
             return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        }
+
+        // Helper to calculate Median of an array
+        function getMedian(values) {
+            if(values.length === 0) return 0;
+            values.sort((a, b) => a - b);
+            const half = Math.floor(values.length / 2);
+            if(values.length % 2) return values[half];
+            return (values[half - 1] + values[half]) / 2.0;
         }
 
         let myChart = null;
@@ -705,89 +728,37 @@
             const blendedStdDev = wStockGlobal * marketStdDev;
 
 
-            // 2. Deterministic Calculation (Table)
-            let tableData = [];
-            let currentBal = totalPortfolio;
-            let currentWithdrawal = initialWithdrawalDollar;
-
-            for (let i = 0; i <= years; i++) {
-                const year = currentYearGlobal + i;
-                const currentAge = age + i;
-                
-                // Income Logic
-                let income = 0;
-                
-                // Add OAS/CPP
-                if (year >= otherIncomeYear) {
-                    income += otherIncomeAmt * Math.pow(1 + inflationRate, i);
-                }
-                // Add Current Income (Part time work)
-                if (year <= currentIncomeEndYear) {
-                    income += currentIncomeAmt * Math.pow(1 + inflationRate, i);
-                }
-
-                const startBal = currentBal;
-                let netFlow = income - currentWithdrawal; 
-                let investable = startBal + netFlow; 
-                
-                if (investable < 0) investable = 0;
-
-                // Deterministic uses blended mean consistently
-                const growth = investable * blendedMean;
-                let endBal = investable + growth;
-
-                // Real Value (Inflation Adjusted)
-                const realBal = endBal / Math.pow(1 + inflationRate, i);
-
-                tableData.push({
-                    year,
-                    age: currentAge,
-                    startBal,
-                    withdrawal: currentWithdrawal,
-                    income,
-                    growth,
-                    endBal,
-                    realBal
-                });
-
-                currentBal = endBal;
-                
-                // Update withdrawal for next year (Basic Inflation Rule for deterministic table)
-                currentWithdrawal = currentWithdrawal * (1 + inflationRate);
-                
-                if (currentBal <= 0) currentBal = 0;
-            }
-
-            // 3. Render Table
-            const tbody = document.getElementById('projectionBody');
-            tbody.innerHTML = '';
-            tableData.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-4 text-slate-400">${row.year}</td>
-                    <td class="p-4 text-slate-400">${row.age}</td>
-                    <td class="p-4 text-right font-mono text-slate-300">${formatCurrency(row.startBal)}</td>
-                    <td class="p-4 text-right font-mono text-rose-400">-${formatCurrency(row.withdrawal)}</td>
-                    <td class="p-4 text-right font-mono text-emerald-400">+${formatCurrency(row.income)}</td>
-                    <td class="p-4 text-right font-mono text-emerald-600">${formatCurrency(row.growth)}</td>
-                    <td class="p-4 text-right font-mono font-bold text-white">${formatCurrency(row.endBal)}</td>
-                    <td class="p-4 text-right font-mono text-purple-400">${formatCurrency(row.realBal)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-
-            // 4. Monte Carlo Simulation (100 Runs)
+            // --- Monte Carlo Simulation (100 Runs) ---
             const numSimulations = 100;
             const simulationDatasets = [];
             let successes = 0;
             let finalBalances = [];
+            
+            // Track earliest failure for highlighting
+            let earliestFailureIndex = -1;
+            let minFailureStep = Infinity;
+
+            // Store annual data for aggregation (Median calculation)
+            // Array of Arrays. Year 0 to Years.
+            // Each index holds an object: { balances: [], withdrawals: [], incomes: [], growths: [] }
+            let yearlyAggregates = Array(years + 1).fill(null).map(() => ({
+                balances: [],
+                withdrawals: [],
+                incomes: [],
+                growths: []
+            }));
+
+            // Initialize Year 0
+            for(let s=0; s<numSimulations; s++) {
+                yearlyAggregates[0].balances.push(totalPortfolio);
+            }
 
             for (let s = 0; s < numSimulations; s++) {
                 let simBal = totalPortfolio;
                 let simWithdrawal = initialWithdrawalDollar;
                 let dataPoints = [simBal]; 
+                
+                let runFailedStep = Infinity; // Track failure year for this specific run
 
                 for (let i = 1; i <= years; i++) {
                     const year = currentYearGlobal + i;
@@ -810,16 +781,24 @@
                     let growth = investable * randomReturn;
                     let end = investable + growth;
 
-                    if (end < 0) end = 0;
+                    if (end <= 0) {
+                        end = 0;
+                        if (runFailedStep === Infinity) {
+                            runFailedStep = i;
+                        }
+                    }
+
+                    // Store metrics for this year
+                    yearlyAggregates[i].balances.push(end);
+                    yearlyAggregates[i].withdrawals.push(simWithdrawal);
+                    yearlyAggregates[i].incomes.push(simIncome);
+                    yearlyAggregates[i].growths.push(growth);
 
                     // Update withdrawal for next year
-                    // If flexible spending is on, check if return was negative
                     let nextWithdrawal = simWithdrawal;
                     if (flexibleSpending && randomReturn < 0) {
-                        // Skip inflation adjustment
                         nextWithdrawal = simWithdrawal;
                     } else {
-                        // Standard adjustment
                         nextWithdrawal = simWithdrawal * (1 + inflationRate);
                     }
 
@@ -831,16 +810,32 @@
 
                 if (simBal > 0) successes++;
                 finalBalances.push(simBal);
+                
+                // Check if this was the earliest failure so far
+                if (runFailedStep < minFailureStep) {
+                    minFailureStep = runFailedStep;
+                    earliestFailureIndex = s;
+                }
 
                 simulationDatasets.push({
                     label: `Sim ${s}`,
                     data: dataPoints,
-                    borderColor: 'rgba(56, 189, 248, 0.1)', // Very faint blue
+                    borderColor: 'rgba(56, 189, 248, 0.1)', // Default faint blue
                     borderWidth: 1,
                     pointRadius: 0,
                     fill: false,
-                    tension: 0.4
+                    tension: 0.4,
+                    order: 10 // Draw blue lines deep in the stack
                 });
+            }
+            
+            // Highlight the earliest failure line
+            if (earliestFailureIndex !== -1) {
+                const failSet = simulationDatasets[earliestFailureIndex];
+                failSet.borderColor = 'rgba(239, 68, 68, 0.9)'; // Red-500, high opacity
+                failSet.borderWidth = 2;
+                failSet.label = "Earliest Failure";
+                failSet.order = 2; // Draw on top of blues, but below Median (order 1)
             }
 
             // Stats Calculation
@@ -856,14 +851,74 @@
             document.getElementById('p90End').innerText = formatCurrency(p90Val);
 
 
+            // --- Generate Median Path Table & Graph Data ---
+            // We iterate through our aggregated year data and calculate medians
+            const medianPathData = [];
+            const tbody = document.getElementById('projectionBody');
+            tbody.innerHTML = '';
+
+            // We iterate 0 to Years. 
+            // Note: Year 0 only has balances. withdraw/income/growth happen during the year (index 1+)
+            for(let i=0; i<=years; i++) {
+                const year = currentYearGlobal + i;
+                const ageNow = age + i;
+                const agg = yearlyAggregates[i];
+
+                // Median Balance
+                const medianBal = getMedian(agg.balances);
+                medianPathData.push(medianBal);
+
+                // For table, we need flows. Flows for Year i lead to Balance i. 
+                // However, Year 0 is just "Start". 
+                // Let's print rows 0 to N.
+                // Row 0 is "Start". Withdrawal/Income/Growth for year 0 are technically null/future.
+                // Standard convention: Row 1 shows activity during Year 1 leading to End Balance 1.
+                // Let's just match the previous format: Year, Age, StartBal, Withdraw, Income, Growth, EndBal
+                // StartBal of Year i = EndBal of Year i-1.
+                
+                if(i > 0) {
+                    const prevMedianBal = medianPathData[i-1];
+                    const medianWithdraw = getMedian(agg.withdrawals);
+                    const medianIncome = getMedian(agg.incomes);
+                    const medianGrowth = getMedian(agg.growths);
+                    const realBal = medianBal / Math.pow(1 + inflationRate, i);
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800/50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="p-4 text-slate-400">${year}</td>
+                        <td class="p-4 text-slate-400">${ageNow}</td>
+                        <td class="p-4 text-right font-mono text-slate-300">${formatCurrency(prevMedianBal)}</td>
+                        <td class="p-4 text-right font-mono text-rose-400">-${formatCurrency(medianWithdraw)}</td>
+                        <td class="p-4 text-right font-mono text-emerald-400">+${formatCurrency(medianIncome)}</td>
+                        <td class="p-4 text-right font-mono text-emerald-600">${formatCurrency(medianGrowth)}</td>
+                        <td class="p-4 text-right font-mono font-bold text-white">${formatCurrency(medianBal)}</td>
+                        <td class="p-4 text-right font-mono text-purple-400">${formatCurrency(realBal)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                } else {
+                    // Year 0 Row (Initial State)
+                    // It's a bit awkward to show "Growth" for year 0 in this format. 
+                    // Usually projection tables start at Year 1. 
+                    // Let's just skip row 0 in the table, or show it as "Starting".
+                    // The previous code showed Year 0 with full stats which was confusing.
+                    // Let's start the table at Year 1 (Future).
+                }
+            }
+
+
             // 5. Render Chart
             const ctx = document.getElementById('fireChart').getContext('2d');
             const labels = [];
             for(let i=0; i<=years; i++) labels.push(currentYearGlobal + i);
 
+            // Determine max Y scale to prevent outliers from squashing the view
+            // Use 125% of the 90th percentile, or at least 125% of the starting portfolio if p90 is a crash
+            const yMax = Math.max(p90Val, totalPortfolio) * 1.25;
+
             const avgDataset = {
-                label: 'Average Market Path',
-                data: tableData.map(r => r.endBal),
+                label: 'Median Market Path',
+                data: medianPathData,
                 borderColor: '#fbbf24', // Amber/Gold
                 borderWidth: 3,
                 pointRadius: 0,
@@ -889,8 +944,11 @@
                             intersect: false,
                             callbacks: {
                                 label: function(context) {
-                                    if(context.dataset.label === 'Average Market Path') {
-                                        return 'Avg: ' + formatCurrency(context.raw);
+                                    if(context.dataset.label === 'Median Market Path') {
+                                        return 'Median: ' + formatCurrency(context.raw);
+                                    }
+                                    if(context.dataset.label === 'Earliest Failure') {
+                                        return 'Early Fail: ' + formatCurrency(context.raw);
                                     }
                                     return ''; 
                                 }
@@ -900,11 +958,12 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            max: yMax,
                             grid: { color: '#334155' },
                             ticks: {
                                 color: '#94a3b8',
                                 callback: function(value) {
-                                    return '$' + value / 1000000 + 'M';
+                                    return '$' + (value / 1000000).toFixed(1) + 'M';
                                 }
                             }
                         },
