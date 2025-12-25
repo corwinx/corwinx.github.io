@@ -247,31 +247,50 @@
                                 </div>
                                 <input type="number" step="0.1" id="withdrawalRate" value="4.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
+                            <!-- Replaced display div with input -->
+                            <div class="relative group flex flex-col">
+                                <div class="flex items-center mb-2">
+                                    <label class="block text-xs font-medium text-emerald-400">Withdrawal Amount ($)</label>
+                                </div>
+                                <input type="text" id="withdrawalAmount" value="$0" class="currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500 transition">
+                            </div>
+                        </div>
+                        
+                        <!-- Inflation & Flexible Spending -->
+                        <div class="grid grid-cols-2 gap-3 items-start">
                             <div class="relative group flex flex-col">
                                 <div class="flex items-center mb-2">
                                     <label class="block text-xs font-medium text-slate-400">Inflation (%)</label>
                                      <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
                                             The rate at which money loses purchasing power. 3% is a conservative long-term estimate.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="number" step="0.1" id="inflation" value="2.8" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.1" id="inflation" value="2.8" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                             </div>
-                        </div>
-                        
-                        <!-- Dynamic Withdrawal Amount Display -->
-                        <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50 text-center">
-                            <span class="text-xs text-slate-500">First Year Withdrawal</span>
-                            <div class="text-emerald-400 font-bold font-mono" id="withdrawalAmountDisplay">$0</div>
+                            
+                            <div class="relative flex flex-col justify-end h-full pb-1">
+                                <label class="flex items-center cursor-pointer group">
+                                    <input type="checkbox" id="flexibleSpending" class="save-input sr-only peer">
+                                    <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                    <span class="ms-2 text-xs font-medium text-slate-400 group-hover:text-emerald-400 transition-colors">Flexible Spending</span>
+                                </label>
+                                <div class="text-[10px] text-slate-500 leading-tight mt-1">Skip inflation raise in down years.</div>
+                            </div>
                         </div>
 
                         <!-- Returns Section -->
-                        <div class="space-y-3 pt-2">
+                        <div class="space-y-3 pt-2 border-t border-slate-700">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="relative group flex flex-col">
                                     <div class="flex items-center mb-2">
                                         <label class="block text-xs font-medium text-slate-400">Stock Return (%)</label>
+                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
+                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
+                                                Arithmetic Mean. Note: Due to "Volatility Drag", an 8% Average here results in a lower Compound Annual Growth Rate (approx 7.3% CAGR).
+                                            </div>
+                                        </i>
                                     </div>
                                     <input type="number" step="0.1" id="marketReturn" value="8.0" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
                                 </div>
@@ -280,7 +299,7 @@
                                         <label class="block text-xs font-medium text-slate-400">Stock Variance (%)</label>
                                         <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
                                             <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Standard Deviation. Higher means bigger swings (ups and downs). 12-15% is typical for equities.
+                                                Annual Standard Deviation. Higher means bigger swings. 12-15% is typical for stock portfolios.
                                             </div>
                                         </i>
                                     </div>
@@ -469,7 +488,11 @@
                 // If it is a currency input, we want to save the raw number, not the string "$100,000"
                 if(input.classList.contains('currency-input')) {
                     data[input.id] = parseCurrencyInput(input.value);
-                } else {
+                } 
+                else if(input.type === 'checkbox') {
+                    data[input.id] = input.checked;
+                }
+                else {
                     data[input.id] = input.value;
                 }
             });
@@ -491,7 +514,11 @@
                         if (input.classList.contains('currency-input')) {
                             // If it's a currency input, apply formatting so it looks nice on load
                             input.value = formatCurrency(value);
-                        } else {
+                        } 
+                        else if(input.type === 'checkbox') {
+                            input.checked = value;
+                        }
+                        else {
                             input.value = value;
                         }
                     }
@@ -531,7 +558,8 @@
                 const val = parseCurrencyInput(e.target.value);
                 e.target.value = formatCurrency(val);
                 calculate(); 
-                saveData(); // Save on blur
+                // Only save if it's a save-input class (the calc logic handles others via specific listeners)
+                if(input.classList.contains('save-input')) saveData(); 
             });
             
             input.addEventListener('keypress', (e) => {
@@ -562,6 +590,47 @@
         });
         incomeSlider.addEventListener('change', saveData); // Save on release
 
+        
+        // --- Sync Logic for Withdrawal Rate / Amount ---
+        const withdrawalRateInput = document.getElementById('withdrawalRate');
+        const withdrawalAmountInput = document.getElementById('withdrawalAmount');
+        
+        // Helper to get total portfolio
+        function getTotalPortfolio() {
+             const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
+             const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
+             const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
+             const cash = parseCurrencyInput(document.getElementById('cash').value);
+             return tfsa + rrsp + nonreg + cash;
+        }
+
+        // When Rate Changes -> Update Amount
+        withdrawalRateInput.addEventListener('input', (e) => {
+             const rate = parseFloat(e.target.value) / 100;
+             const total = getTotalPortfolio();
+             const amount = total * rate;
+             withdrawalAmountInput.value = formatCurrency(amount);
+             // Note: calculate() is triggered by the 'input' event listener added below generally
+        });
+
+        // When Amount Changes -> Update Rate
+        // Use 'change' or 'blur' mostly, but input allows live update if they type numbers
+        withdrawalAmountInput.addEventListener('input', (e) => {
+            // We need to parse raw number because this input might have formatting if user is editing
+            // But if user is typing, it might be raw.
+            // However, currencyInputs logic handles focus/blur formatting.
+            // While focused, it is raw number.
+            const amount = parseFloat(e.target.value) || 0;
+            const total = getTotalPortfolio();
+            
+            if(total > 0) {
+                const rate = (amount / total) * 100;
+                // Limit decimals to avoid ugly floating point
+                withdrawalRateInput.value = rate.toFixed(2);
+            }
+            calculate();
+        });
+
 
         // --- Main Logic ---
         function calculate() {
@@ -570,21 +639,20 @@
             const years = parseInt(document.getElementById('years').value);
             
             // Portfolio
-            const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
-            const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
-            const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
-            const cash = parseCurrencyInput(document.getElementById('cash').value);
-            const totalPortfolio = tfsa + rrsp + nonreg + cash;
-
+            const totalPortfolio = getTotalPortfolio();
             document.getElementById('displayTotalPortfolio').innerText = formatCurrency(totalPortfolio);
 
             // Assumptions
+            // We use the Rate input as the source of truth for the calc loop
             const withdrawRate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
+            
             const inflationRate = parseFloat(document.getElementById('inflation').value) / 100;
             const marketMean = parseFloat(document.getElementById('marketReturn').value) / 100;
             const marketStdDev = parseFloat(document.getElementById('marketVariance').value) / 100;
             const bondReturn = parseFloat(document.getElementById('bondReturn').value) / 100;
             const merFee = parseFloat(document.getElementById('merFee').value) / 100;
+            
+            const flexibleSpending = document.getElementById('flexibleSpending').checked;
 
             // Investment Mix
             const stockPct = parseInt(stockSlider.value) / 100;
@@ -597,13 +665,25 @@
             const currentIncomeAmt = parseCurrencyInput(document.getElementById('currentIncome').value);
             const currentIncomeEndYear = currentYearGlobal + parseInt(incomeSlider.value);
 
-            // Initial Withdrawal
+            // Initial Withdrawal Dollar (Derived from Rate * Portfolio)
+            // Ensure the input box matches if we came from portfolio change
+            // But if we came from manual amount edit, the listener above handled the rate sync
             const initialWithdrawalDollar = totalPortfolio * withdrawRate;
-            document.getElementById('withdrawalAmountDisplay').innerText = formatCurrency(initialWithdrawalDollar);
+            
+            // Only update the Amount visual if we are NOT currently focused on it (to avoid jumping cursor)
+            if(document.activeElement !== withdrawalAmountInput) {
+                withdrawalAmountInput.value = formatCurrency(initialWithdrawalDollar);
+            }
+
 
             // --- Blended Return Calculation ---
             // "Cash" account always earns bondReturn.
             // "Invested" accounts (TFSA/RRSP/NonReg) earn based on mix.
+            const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
+            const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
+            const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
+            const cash = parseCurrencyInput(document.getElementById('cash').value);
+            
             const investedAssets = tfsa + rrsp + nonreg;
             const cashAssets = cash;
             const total = totalPortfolio > 0 ? totalPortfolio : 1;
@@ -652,6 +732,7 @@
                 
                 if (investable < 0) investable = 0;
 
+                // Deterministic uses blended mean consistently
                 const growth = investable * blendedMean;
                 let endBal = investable + growth;
 
@@ -670,7 +751,10 @@
                 });
 
                 currentBal = endBal;
+                
+                // Update withdrawal for next year (Basic Inflation Rule for deterministic table)
                 currentWithdrawal = currentWithdrawal * (1 + inflationRate);
+                
                 if (currentBal <= 0) currentBal = 0;
             }
 
@@ -728,8 +812,19 @@
 
                     if (end < 0) end = 0;
 
+                    // Update withdrawal for next year
+                    // If flexible spending is on, check if return was negative
+                    let nextWithdrawal = simWithdrawal;
+                    if (flexibleSpending && randomReturn < 0) {
+                        // Skip inflation adjustment
+                        nextWithdrawal = simWithdrawal;
+                    } else {
+                        // Standard adjustment
+                        nextWithdrawal = simWithdrawal * (1 + inflationRate);
+                    }
+
                     simBal = end;
-                    simWithdrawal = simWithdrawal * (1 + inflationRate);
+                    simWithdrawal = nextWithdrawal;
                     
                     dataPoints.push(simBal);
                 }
@@ -844,29 +939,16 @@
         document.getElementById('currentIncome').addEventListener('blur', calculate); 
         document.getElementById('resetBtn').addEventListener('click', resetData);
 
-        // Auto-update wrapper
+        // Auto-update wrapper for Portfolio Changes
         const portfolioWrapper = document.querySelector('.lg\\:col-span-3'); 
         portfolioWrapper.addEventListener('input', (e) => {
             if(e.target.classList.contains('portfolio-input')) {
-                const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
-                const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
-                const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
-                const cash = parseCurrencyInput(document.getElementById('cash').value);
-                const total = tfsa + rrsp + nonreg + cash;
-                
+                const total = getTotalPortfolio();
                 document.getElementById('displayTotalPortfolio').innerText = formatCurrency(total);
                 
+                // Logic: Rate is KING. Update Dollar Amount.
                 const rate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
-                document.getElementById('withdrawalAmountDisplay').innerText = formatCurrency(total * rate);
-            }
-            if(e.target.id === 'withdrawalRate') {
-                const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
-                const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
-                const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
-                const cash = parseCurrencyInput(document.getElementById('cash').value);
-                const total = tfsa + rrsp + nonreg + cash;
-                const rate = parseFloat(e.target.value) / 100;
-                document.getElementById('withdrawalAmountDisplay').innerText = formatCurrency(total * rate);
+                document.getElementById('withdrawalAmount').value = formatCurrency(total * rate);
             }
         });
 
