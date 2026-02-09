@@ -402,7 +402,7 @@
 
                             <div class="space-y-1.5 group relative">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-xs font-medium text-muted-foreground">Amount ($)</label>
+                                    <label class="text-xs font-medium text-muted-foreground">Annual Spend ($)</label>
                                     <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
                                         <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
                                             Master Value. Annual spending in today's dollars.
@@ -487,6 +487,11 @@
                             <div class="space-y-1.5 relative group">
                                 <div class="flex items-center justify-between">
                                     <label class="text-xs font-medium text-muted-foreground">MER Fee (%)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                            Management Expense Ratio. Deducted annually from portfolio growth. Limit: 50%.
+                                        </div>
+                                    </i>
                                 </div>
                                 <input type="number" step="0.01" id="merFee" value="0.25" min="0" max="50" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                             </div>
@@ -603,7 +608,7 @@
                                     <th class="p-4 font-medium">Age</th>
                                     <th class="p-4 text-right font-medium">Start Bal</th>
                                     <th class="p-4 text-right font-medium text-rose-400/90">Withdrawal</th>
-                                    <th class="p-4 text-right font-medium text-emerald-400/90">Income</th>
+                                    <th class="p-4 text-right font-medium text-emerald-400/80">Income</th>
                                     <th class="p-4 text-right font-medium text-emerald-600/90">Growth</th>
                                     <th class="p-4 text-right font-medium">End Bal</th>
                                     <th class="p-4 text-right font-medium text-purple-400/90">Buying Power</th>
@@ -640,8 +645,7 @@
         const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
         // SEEDED Random Number Generator
-        let baseSeed = 1; // Determines the sequence start (persists across calcs)
-        let masterSeed = 1; // Iterator for the current sequence
+        let baseSeed = 1; 
         
         function seededRandom() {
             var x = Math.sin(masterSeed++) * 10000;
