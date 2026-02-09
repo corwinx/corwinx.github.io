@@ -11,7 +11,7 @@
     =======================================================================
 -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +19,59 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        popover: {
+                            DEFAULT: "hsl(var(--popover))",
+                            foreground: "hsl(var(--popover-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                }
+            }
+        }
+    </script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -32,67 +85,150 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Custom Scrollbar for table */
-        .custom-scrollbar::-webkit-scrollbar {
+        /* Base Variables (Zinc Dark Default) */
+        :root {
+            --radius: 0.5rem;
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 240 10% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 142 76% 36%; /* Emerald */
+            --primary-foreground: 355.7 100% 97.3%;
+            --secondary: 240 3.7% 15.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 240 3.7% 15.9%;
+            --muted-foreground: 240 5% 64.9%;
+            --accent: 240 3.7% 15.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --input: 240 3.7% 15.9%;
+            --ring: 142 76% 36%;
+            
+            /* Chart Specifics */
+            --chart-grid: #27272a;
+            --chart-text: #71717a;
+        }
+
+        /* Slate Dark Theme */
+        [data-theme="slate"] {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 217.2 91.2% 59.8%; /* Blue-ish */
+            --primary-foreground: 222.2 47.4% 11.2%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 212.7 26.8% 83.9%;
+            
+            --chart-grid: #1e293b;
+            --chart-text: #94a3b8;
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 142 76% 36%; /* Emerald */
+            --primary-foreground: 355.7 100% 97.3%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 142 76% 36%;
+
+            --chart-grid: #e4e4e7;
+            --chart-text: #52525b;
+        }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1e293b;
+        ::-webkit-scrollbar-track {
+            background: transparent;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #475569;
+        ::-webkit-scrollbar-thumb {
+            background: hsl(var(--border));
             border-radius: 4px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
+        ::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--muted-foreground));
         }
-        
-        /* Robust Slider Styling */
+
+        /* Shadcn-like Slider */
         input[type=range] {
-            -webkit-appearance: none; 
-            width: 100%; 
-            background: transparent; 
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
         }
-        
+        input[type=range]:focus {
+            outline: none;
+        }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 16px;
             width: 16px;
             border-radius: 50%;
-            background: #10b981; /* Emerald 500 */
+            background: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border));
             cursor: pointer;
-            margin-top: -6px; 
-            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+            margin-top: -7px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 4px;
+            height: 2px;
             cursor: pointer;
-            background: #334155; /* Slate 700 */
-            border-radius: 2px;
+            background: hsl(var(--border));
+            border-radius: 1px;
         }
-        
-        input[type=range]:focus::-webkit-slider-runnable-track {
-            background: #475569;
-        }
-        
         /* Firefox */
-        input[type=range]::-moz-range-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 2px;
-        }
         input[type=range]::-moz-range-thumb {
             height: 16px;
             width: 16px;
-            border: none;
+            border: 1px solid hsl(var(--border));
             border-radius: 50%;
-            background: #10b981;
+            background: hsl(var(--foreground));
             cursor: pointer;
+        }
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 2px;
+            cursor: pointer;
+            background: hsl(var(--border));
+            border-radius: 1px;
         }
 
         /* Tooltip Logic */
@@ -104,388 +240,392 @@
         .tooltip-content {
             transform: translateY(4px);
             transition: all 0.2s ease-out;
-            /* Explicitly force clean sans-serif font stack for tooltips */
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
         }
 
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        /* Shadcn Input Focus Ring Helper */
+        .shadcn-input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 1px hsl(var(--ring)); 
+        }
+        
+        .border-color-trans {
+            transition: border-color 0.3s;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+<body class="h-screen w-full flex flex-col overflow-hidden text-foreground bg-background">
 
-    <div class="max-w-7xl mx-auto space-y-6">
-        
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4">
-            <div>
-                <h1 class="text-3xl font-bold text-emerald-400"><i class="fa-solid fa-leaf mr-2"></i>Corwin's FIRE Calc (Canada)</h1>
-                <p class="text-slate-400 text-sm mt-1">Financial Independence, Retire Early • Monte Carlo Simulation</p>
+    <!-- Header (Fixed) -->
+    <header class="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 flex-shrink-0 z-50 transition-colors duration-300">
+        <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                <i class="fa-solid fa-leaf"></i>
             </div>
-            <div class="mt-4 md:mt-0 text-right">
-                <div class="text-xs text-slate-500 uppercase tracking-wider">Total Portfolio</div>
-                <div class="text-2xl font-bold text-white" id="displayTotalPortfolio">$0.00</div>
+            <div>
+                <h1 class="text-sm font-semibold tracking-tight">Corwin's FIRE Calc (Canada)</h1>
+                <p class="text-[10px] text-muted-foreground">Monte Carlo Simulation</p>
             </div>
         </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-2">
+                <label for="themeSelect" class="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Theme</label>
+                <select id="themeSelect" class="h-8 w-32 rounded-md border border-input bg-background px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                    <option value="zinc">Zinc (Dark)</option>
+                    <option value="slate">Slate (Dark)</option>
+                    <option value="light">Light Mode</option>
+                </select>
+            </div>
+            <div class="text-right border-l border-border pl-4">
+                <div class="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total Portfolio</div>
+                <div class="text-lg font-bold font-mono text-primary" id="displayTotalPortfolio">$0.00</div>
+            </div>
+        </div>
+    </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Main Layout -->
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- LEFT SIDEBAR (Inputs) -->
+        <aside class="w-full lg:w-[420px] bg-card border-r border-border overflow-y-auto flex-shrink-0 p-6 custom-scrollbar transition-colors duration-300">
             
-            <!-- INPUTS COLUMN -->
-            <div class="lg:col-span-3 space-y-6">
+            <div class="space-y-6">
                 
-                <!-- Section: Personal -->
-                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg relative">
-                    <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Profile</h2>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="relative group">
-                            <div class="flex items-center mb-1">
-                                <label class="block text-xs font-medium text-slate-400">Current Age</label>
-                            </div>
-                            <input type="number" id="age" value="42" min="1" max="100" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                <!-- Profile Card -->
+                <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <h3 class="text-sm font-medium mb-4 flex items-center gap-2">
+                        <i class="fa-regular fa-user text-muted-foreground"></i> Profile
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Age</label>
+                            <input type="number" id="age" value="42" min="1" max="100" 
+                                class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
-                        <div class="relative group">
-                            <div class="flex items-center mb-1">
-                                <label class="block text-xs font-medium text-slate-400">Years to Project</label>
-                            </div>
-                            <input type="number" id="years" value="50" min="1" max="100" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Years to Project</label>
+                            <input type="number" id="years" value="50" min="1" max="100" 
+                                class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
                     </div>
                 </div>
 
-                <!-- Section: Portfolio -->
-                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg">
-                    <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Assets (CAD)</h2>
-                    
-                    <div class="space-y-3">
-                        <div class="relative group">
-                            <div class="flex items-center mb-1">
-                                <label class="block text-xs font-medium text-slate-400">TFSA</label>
-                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        Tax-Free Savings Account. Investment growth and withdrawals are completely tax-free. Max limit: $5M.
+                <!-- Assets Card -->
+                <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <h3 class="text-sm font-medium mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-coins text-muted-foreground"></i> Assets (CAD)
+                    </h3>
+                    <div class="space-y-4">
+                        <!-- TFSA -->
+                        <div class="space-y-1.5 relative group">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-muted-foreground">TFSA</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                        Tax-Free Savings Account. Limit: $5M.
                                     </div>
                                 </i>
                             </div>
-                            <input type="text" id="tfsa" value="$100,000" data-max="5000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <input type="text" id="tfsa" value="$100,000" data-max="5000000" class="save-input currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                         </div>
-                        <div class="relative group">
-                            <div class="flex items-center mb-1">
-                                <label class="block text-xs font-medium text-slate-400">RRSP / LIRA</label>
-                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        Registered Retirement Savings Plan. Growth is tax-deferred, but withdrawals are taxed as income. Max limit: $10M.
-                                    </div>
-                                </i>
-                            </div>
-                            <input type="text" id="rrsp" value="$250,000" data-max="10000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                        </div>
-                        <div class="relative group">
-                            <div class="flex items-center mb-1">
-                                <label class="block text-xs font-medium text-slate-400">Non-Registered</label>
-                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        Taxable investment account. Interest, dividends, and capital gains are subject to tax. Max limit: $10M.
-                                    </div>
-                                </i>
-                            </div>
-                            <input type="text" id="nonreg" value="$50,000" data-max="10000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                        </div>
-                        
-                        <!-- Separator for Cash -->
-                        <div class="border-t border-slate-700 my-2 pt-2 relative group">
-                             <div class="flex items-center mb-1">
-                                <label class="block text-xs font-medium text-slate-400">Cash / Money Market</label>
-                                <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                        High Interest Savings or Cash equivalents. Low risk, earns the Fixed Income rate. Max limit: $10M.
-                                    </div>
-                                </i>
-                             </div>
-                             <input type="text" id="cash" value="$20,000" data-max="10000000" class="save-input currency-input portfolio-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                             <p class="text-[10px] text-slate-500 mt-1">Excluded from mix. Earns Fixed Rate only.</p>
-                        </div>
-                    </div>
 
-                    <!-- Investment Mix Slider -->
-                    <div class="mt-6 pt-4 border-t border-slate-700">
-                        <div class="flex items-center mb-2">
-                            <label class="block text-xs font-medium text-emerald-400">Investment Mix (Reg/Non-Reg)</label>
-                            <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                    Determines the risk/return profile. Higher stock allocation means higher potential returns but more volatility.
-                                </div>
-                            </i>
+                        <!-- RRSP -->
+                        <div class="space-y-1.5 relative group">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-muted-foreground">RRSP / LIRA</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                        Registered Retirement Savings Plan. Limit: $10M.
+                                    </div>
+                                </i>
+                            </div>
+                            <input type="text" id="rrsp" value="$250,000" data-max="10000000" class="save-input currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                         </div>
-                        <div class="relative pt-1 px-1">
-                            <input type="range" id="stockAlloc" min="0" max="100" value="80" 
-                                class="save-input w-full h-2 rounded-lg cursor-pointer">
-                            <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-mono uppercase">
+
+                        <!-- Non-Reg -->
+                        <div class="space-y-1.5 relative group">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-muted-foreground">Non-Registered</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                        Taxable Accounts. Limit: $10M.
+                                    </div>
+                                </i>
+                            </div>
+                            <input type="text" id="nonreg" value="$50,000" data-max="10000000" class="save-input currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
+                        </div>
+
+                        <div class="h-px bg-border my-2"></div>
+
+                        <!-- Cash -->
+                        <div class="space-y-1.5 relative group">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-muted-foreground">Cash / Money Market</label>
+                                <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                    <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                        Low risk, Fixed Income rate. Limit: $10M.
+                                    </div>
+                                </i>
+                            </div>
+                            <input type="text" id="cash" value="$20,000" data-max="10000000" class="save-input currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
+                        </div>
+
+                        <!-- Mix Slider -->
+                        <div class="pt-2">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="text-[10px] font-medium uppercase tracking-wider text-primary">Asset Mix (Inv)</label>
+                                <span id="mixLabel" class="text-[10px] font-mono text-muted-foreground">80% Stocks</span>
+                            </div>
+                            <input type="range" id="stockAlloc" min="0" max="100" value="80" class="save-input">
+                            <div class="flex justify-between text-[10px] text-muted-foreground mt-1">
                                 <span>Bonds</span>
-                                <span id="mixLabel" class="text-white font-bold">80% Stocks</span>
                                 <span>Stocks</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section: Variables -->
-                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-lg">
-                    <h2 class="text-lg font-semibold text-emerald-400 mb-4 border-b border-slate-700 pb-2">Assumptions</h2>
+                <!-- Assumptions Card -->
+                <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <h3 class="text-sm font-medium mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-muted-foreground"></i> Assumptions
+                    </h3>
                     
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3 relative">
+                    <div class="space-y-5">
+                        <!-- Withdrawal Row -->
+                        <div class="grid grid-cols-2 gap-4 relative">
                             <!-- Link Icon -->
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[-4px] z-10 text-slate-600 text-xs">
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[-2px] z-10 text-muted-foreground text-[10px]">
                                 <i class="fa-solid fa-link"></i>
                             </div>
 
-                            <!-- SWAPPED: Amount Left, Rate Right -->
-                            
-                            <div class="relative group flex flex-col">
-                                <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-slate-400">Withdrawal Amount ($)</label>
-                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            Total annual spending (Master). This value stays fixed when portfolio value changes, updating the rate accordingly. Limit: 50% of portfolio.
+                            <div class="space-y-1.5 group relative">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">Amount ($)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full -right-4 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                            Master Value. Annual spending in today's dollars.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="text" id="withdrawalAmount" value="$0" class="currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500 transition">
+                                <input type="text" id="withdrawalAmount" value="$0" class="currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm font-mono shadow-sm transition-colors">
                             </div>
 
-                            <div class="relative group flex flex-col">
-                                <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-slate-400">Withdrawal Rate (%)</label>
-                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            The % of your portfolio you spend in Year 1. Updates automatically based on the Amount. Limit: 50%.
+                            <div class="space-y-1.5 group relative">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">Rate (%)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                            Calculated withdrawal rate based on portfolio value.
                                         </div>
                                     </i>
                                 </div>
-                                <input type="number" step="0.01" id="withdrawalRate" value="4.0" min="0" max="50" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.01" id="withdrawalRate" value="4.0" min="0" max="50" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                             </div>
-                            
                         </div>
-                        
-                        <!-- Inflation & Flexible Spending -->
-                        <div class="grid grid-cols-2 gap-3 items-start">
-                            <div class="relative group flex flex-col">
-                                <div class="flex items-center mb-2">
-                                    <label class="block text-xs font-medium text-slate-400">Inflation (%)</label>
-                                     <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                            The rate at which money loses purchasing power. 3% is a conservative long-term estimate. Limit: 200%.
-                                        </div>
-                                    </i>
+
+                        <!-- Inflation & Flex -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5 group relative">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">Inflation (%)</label>
                                 </div>
-                                <input type="number" step="0.1" id="inflation" value="2.8" min="0" max="200" class="save-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <input type="number" step="0.1" id="inflation" value="2.8" min="0" max="200" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                             </div>
-                            
-                            <div class="relative flex flex-col justify-end h-full pb-1">
-                                <label class="flex items-center cursor-pointer group mb-1">
+                            <div class="flex items-center pt-6">
+                                <label class="flex items-center cursor-pointer group">
                                     <input type="checkbox" id="flexibleSpending" class="save-input sr-only peer">
-                                    <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                                    <span class="ms-2 text-xs font-medium text-slate-400 group-hover:text-emerald-400 transition-colors">Flexible Spending</span>
-                                    <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans normal-case text-left">
-                                            If selected, the simulation will skip the annual inflation raise for your withdrawals in any year where the portfolio value drops. This simple strategy significantly improves success rates.
+                                    <div class="relative w-9 h-5 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-muted-foreground after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                    <span class="ms-2 text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">Flex Spend</span>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground ml-2 cursor-help tooltip-trigger relative">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none normal-case text-left">
+                                            Skip inflation raise in years where portfolio value drops.
                                         </div>
                                     </i>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Returns Section -->
-                        <div class="space-y-3 pt-2 border-t border-slate-700">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="relative group flex flex-col">
-                                    <div class="flex items-center mb-2">
-                                        <label class="block text-xs font-medium text-slate-400">Stock Return (%)</label>
-                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Arithmetic Mean. Note: The projection table automatically adjusts this to the "Geometric Mean" (CAGR) to account for volatility drag, making it realistic.
-                                            </div>
-                                        </i>
-                                    </div>
-                                    <input type="number" step="0.1" id="marketReturn" value="8.0" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                                </div>
-                                <div class="relative group flex flex-col">
-                                    <div class="flex items-center mb-2">
-                                        <label class="block text-xs font-medium text-slate-400">Stock Variance (%)</label>
-                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Annual Standard Deviation. Higher means bigger swings. 12-15% is typical for stock portfolios. Limit: 100%.
-                                            </div>
-                                        </i>
-                                    </div>
-                                    <input type="number" step="0.1" id="marketVariance" value="12.0" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="relative group flex flex-col">
-                                    <div class="flex items-center mb-2">
-                                        <label class="block text-xs font-medium text-slate-400">Fixed Income (%)</label>
-                                    </div>
-                                    <input type="number" step="0.1" id="bondReturn" value="2.5" min="0" max="100" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                                </div>
-                                <div class="relative group flex flex-col">
-                                    <div class="flex items-center mb-2">
-                                        <label class="block text-xs font-medium text-slate-400">Inv. Fees/MER (%)</label>
-                                         <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Management Expense Ratio. Deducted annually from portfolio growth. Limit: 50%.
-                                            </div>
-                                        </i>
-                                    </div>
-                                    <input type="number" step="0.01" id="merFee" value="0.25" min="0" max="50" class="save-input mt-auto w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
-                                </div>
-                            </div>
-                        </div>
+                        <div class="h-px bg-border"></div>
 
-                        <!-- Income Sections -->
-                        <div class="pt-4 mt-2 border-t border-slate-700 space-y-4">
-                            
-                            <!-- Current Income -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <div class="flex items-center mb-1">
-                                        <label class="block text-xs font-medium text-emerald-400">Current / Side Income</label>
-                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Income from part-time work or side hustles during early retirement years. Max limit: $100M.
-                                            </div>
-                                        </i>
-                                    </div>
-                                    <input type="text" id="currentIncome" value="$0" data-max="100000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition" placeholder="$0">
+                        <!-- Returns Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5 relative group">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">Stock Rtn (%)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                            Arithmetic Mean. Geometric mean will be lower.
+                                        </div>
+                                    </i>
                                 </div>
-                                
-                                <div class="flex flex-col justify-end pb-1">
-                                    <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-                                        <span>Until: <span id="currentIncomeEndLabel" class="text-white font-bold">2030</span></span>
-                                    </div>
-                                    <div class="relative pt-1 px-1">
-                                        <input type="range" id="currentIncomeEnd" min="2025" max="2075" value="2030" class="save-input w-full h-2 rounded-lg cursor-pointer">
-                                    </div>
-                                </div>
+                                <input type="number" step="0.1" id="marketReturn" value="8.0" min="0" max="100" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                             </div>
-
-                            <!-- Other Income -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <div class="flex items-center mb-1">
-                                        <label class="block text-xs font-medium text-emerald-400">OAS / CPP / Pension</label>
-                                        <i class="fa-solid fa-circle-info text-[10px] text-slate-500 ml-2 cursor-help tooltip-trigger relative">
-                                            <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-700 text-sm font-normal text-slate-200 rounded-md border border-slate-600 shadow-xl pointer-events-none font-sans">
-                                                Government benefits or defined benefit pensions starting later in life (typically age 65+). Enter in today's dollars; will be adjusted for inflation. Max limit: $1M.
-                                            </div>
-                                        </i>
-                                    </div>
-                                    <input type="text" id="otherIncome" value="$18,000" data-max="1000000" class="save-input currency-input w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white mb-2 focus:outline-none focus:border-emerald-500 transition">
+                            <div class="space-y-1.5 relative group">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">Variance (%)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full right-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                            Std Deviation. 12-15% typical for stocks.
+                                        </div>
+                                    </i>
                                 </div>
-                                
-                                <div class="flex flex-col justify-end pb-1">
-                                    <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-                                        <span>Start: <span id="otherIncomeStartLabel" class="text-white font-bold">2048</span></span>
-                                    </div>
-                                    <div class="relative pt-1 px-1">
-                                        <!-- Min/Max set dynamically in JS -->
-                                        <input type="range" id="otherIncomeStart" min="2025" max="2075" value="2048" class="save-input w-full h-2 rounded-lg cursor-pointer">
-                                    </div>
-                                </div>
+                                <input type="number" step="0.1" id="marketVariance" value="12.0" min="0" max="100" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
                             </div>
-
+                            <div class="space-y-1.5 relative group">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">Fixed Inc (%)</label>
+                                    <i class="fa-solid fa-circle-info text-[10px] text-muted-foreground cursor-help tooltip-trigger">
+                                        <div class="tooltip-content invisible opacity-0 absolute z-50 bottom-full left-0 mb-2 w-56 p-3 bg-popover text-xs text-popover-foreground rounded-md border border-border shadow-xl pointer-events-none">
+                                            Return for Bonds/Cash. 0% volatility assumed.
+                                        </div>
+                                    </i>
+                                </div>
+                                <input type="number" step="0.1" id="bondReturn" value="2.5" min="0" max="100" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
+                            </div>
+                            <div class="space-y-1.5 relative group">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-medium text-muted-foreground">MER Fee (%)</label>
+                                </div>
+                                <input type="number" step="0.01" id="merFee" value="0.25" min="0" max="50" class="save-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Renamed Recalculate to Re-roll Simulation -->
-                    <button id="calcBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded transition duration-200 shadow-lg shadow-emerald-900/50">
+                <!-- Income Card -->
+                <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <h3 class="text-sm font-medium mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-hand-holding-dollar text-muted-foreground"></i> Income
+                    </h3>
+                    <div class="space-y-5">
+                        <!-- Current Income -->
+                        <div class="grid grid-cols-5 gap-3 items-end">
+                            <div class="col-span-3 space-y-1.5">
+                                <label class="text-xs font-medium text-primary">Side Income ($)</label>
+                                <input type="text" id="currentIncome" value="$0" data-max="100000000" class="save-input currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
+                            </div>
+                            <div class="col-span-2 space-y-1">
+                                <div class="flex justify-between text-[10px] text-muted-foreground">
+                                    <span>Until:</span>
+                                    <span id="currentIncomeEndLabel" class="text-foreground font-mono">2030</span>
+                                </div>
+                                <input type="range" id="currentIncomeEnd" min="2025" max="2075" value="2030" class="save-input">
+                            </div>
+                        </div>
+
+                        <!-- OAS Income -->
+                        <div class="grid grid-cols-5 gap-3 items-end">
+                            <div class="col-span-3 space-y-1.5">
+                                <label class="text-xs font-medium text-primary">CPP/OAS ($)</label>
+                                <input type="text" id="otherIncome" value="$18,000" data-max="1000000" class="save-input currency-input shadcn-input flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors">
+                            </div>
+                            <div class="col-span-2 space-y-1">
+                                <div class="flex justify-between text-[10px] text-muted-foreground">
+                                    <span>Start:</span>
+                                    <span id="otherIncomeStartLabel" class="text-foreground font-mono">2048</span>
+                                </div>
+                                <input type="range" id="otherIncomeStart" min="2025" max="2075" value="2048" class="save-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <button id="calcBtn" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-[0_0_15px_-3px_hsl(var(--primary)/0.4)]">
                         <i class="fa-solid fa-dice mr-2"></i> Recalculate (new seed)
                     </button>
-                    
-                    <!-- Reset Button -->
-                    <button id="resetBtn" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium py-2 px-4 rounded transition duration-200 text-xs">
-                         Reset to Defaults
+                    <button id="resetBtn" class="w-full inline-flex items-center justify-center rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 px-3">
+                        Reset Defaults
                     </button>
                 </div>
 
             </div>
+        </aside>
 
-            <!-- RESULTS COLUMN -->
-            <div class="lg:col-span-9 space-y-6">
+        <!-- RIGHT CONTENT (Results) - Independently Scrollable -->
+        <main class="flex-1 overflow-y-auto bg-background p-4 lg:p-8 custom-scrollbar transition-colors duration-300">
+            <div class="max-w-5xl mx-auto space-y-6">
                 
-                <!-- Chart Section -->
-                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-lg h-[450px] relative">
-                    <div class="flex justify-between items-center absolute top-4 left-4 right-4 z-10 pointer-events-none">
-                         <h3 class="text-sm font-semibold text-slate-300 bg-slate-800/80 px-2 py-1 rounded">
-                            Monte Carlo Simulation (100 Runs)
-                        </h3>
+                <!-- Chart Card -->
+                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-colors duration-300">
+                    <div class="flex flex-col space-y-1.5 p-6 pb-2">
+                        <h3 class="font-semibold leading-none tracking-tight">Monte Carlo Simulation</h3>
+                        <p class="text-sm text-muted-foreground">100 random market scenarios based on your volatility inputs.</p>
                     </div>
-                   
-                    <div class="h-full w-full pt-8">
+                    <div class="p-6 pt-0 h-[400px]">
                         <canvas id="fireChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Stats Summary -->
+                <!-- Stats Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-slate-800 p-4 rounded border border-slate-700">
-                        <div class="text-xs text-slate-500">Success Rate (> $0)</div>
-                        <div class="text-xl font-bold text-emerald-400" id="successRate">--%</div>
+                    <div class="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors duration-300">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">Success Rate</div>
+                        <div class="text-2xl font-bold text-primary" id="successRate">--%</div>
+                        <div class="text-[10px] text-muted-foreground">Runs > $0</div>
                     </div>
-                    <div class="bg-slate-800 p-4 rounded border border-slate-700">
-                        <div class="text-xs text-slate-500">Median End Balance</div>
-                        <div class="text-xl font-bold text-white" id="medianEnd">--</div>
+                    <div class="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors duration-300">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">Median End Balance</div>
+                        <div class="text-2xl font-bold tracking-tight" id="medianEnd">--</div>
+                        <div class="text-[10px] text-muted-foreground">50th Percentile</div>
                     </div>
-                     <div class="bg-slate-800 p-4 rounded border border-slate-700">
-                        <div class="text-xs text-slate-500">10th Percentile (Poor)</div>
-                        <div class="text-xl font-bold text-rose-400" id="p10End">--</div>
+                    <div class="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors duration-300">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">10th Percentile (Poor)</div>
+                        <div class="text-2xl font-bold text-rose-400 tracking-tight" id="p10End">--</div>
+                        <div class="text-[10px] text-muted-foreground">Unlucky Scenario</div>
                     </div>
-                    <div class="bg-slate-800 p-4 rounded border border-slate-700">
-                        <div class="text-xs text-slate-500">90th Percentile (Great)</div>
-                        <div class="text-xl font-bold text-blue-400" id="p90End">--</div>
+                    <div class="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors duration-300">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">90th Percentile (Great)</div>
+                        <div class="text-2xl font-bold text-blue-400 tracking-tight" id="p90End">--</div>
+                        <div class="text-[10px] text-muted-foreground">Lucky Scenario</div>
                     </div>
                 </div>
 
-                <!-- Data Table -->
-                <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-lg overflow-hidden flex flex-col h-[700px]">
-                    <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800">
-                        <h3 class="font-semibold text-slate-300">Detailed Projection (Median Scenario)</h3>
-                        <span class="text-xs text-slate-500 italic">Values are nominal unless specified</span>
+                <!-- Table Card -->
+                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden flex flex-col h-[600px] transition-colors duration-300">
+                    <div class="flex flex-col space-y-1.5 p-6 pb-4 border-b border-border bg-card/50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-semibold leading-none tracking-tight">Detailed Projection</h3>
+                                <p class="text-sm text-muted-foreground mt-1">Median scenario year-by-year breakdown.</p>
+                            </div>
+                            <span class="text-[10px] text-muted-foreground font-mono bg-secondary px-2 py-1 rounded border border-border">Values are Nominal</span>
+                        </div>
                     </div>
                     
-                    <div class="overflow-auto custom-scrollbar flex-grow">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900 sticky top-0 text-xs text-slate-400 uppercase tracking-wider font-semibold z-10 shadow-sm">
-                                <tr>
-                                    <th class="p-4">Year</th>
-                                    <th class="p-4">Age</th>
-                                    <th class="p-4 text-right">Start Bal</th>
-                                    <th class="p-4 text-right">Withdrawal</th>
-                                    <th class="p-4 text-right">Other Inc</th>
-                                    <th class="p-4 text-right text-emerald-500">Growth</th>
-                                    <th class="p-4 text-right text-white">End Bal (Nominal)</th>
-                                    <th class="p-4 text-right text-purple-400">Buying Power (Today's $)</th>
+                    <div class="overflow-auto custom-scrollbar flex-1 p-0">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-card sticky top-0 z-10">
+                                <tr class="border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                    <th class="p-4 font-medium">Year</th>
+                                    <th class="p-4 font-medium">Age</th>
+                                    <th class="p-4 text-right font-medium">Start Bal</th>
+                                    <th class="p-4 text-right font-medium text-rose-400/90">Withdrawal</th>
+                                    <th class="p-4 text-right font-medium text-emerald-400/90">Income</th>
+                                    <th class="p-4 text-right font-medium text-emerald-600/90">Growth</th>
+                                    <th class="p-4 text-right font-medium">End Bal</th>
+                                    <th class="p-4 text-right font-medium text-purple-400/90">Buying Power</th>
                                 </tr>
                             </thead>
-                            <tbody id="projectionBody" class="text-sm divide-y divide-slate-700 text-slate-300">
-                                <!-- JS will populate this -->
+                            <tbody id="projectionBody" class="divide-y divide-border text-muted-foreground">
+                                <!-- JS Populated -->
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-            </div>
-        </div>
-        
-        <div class="text-center text-xs text-slate-500 mt-8 pb-4 space-y-1">
-            <p>Disclaimer: This tool is for educational purposes only. Market returns use Gaussian distribution for Monte Carlo.</p>
-            <p class="text-slate-600">Note: All values are <strong>PRE-TAX</strong>. Investment fees are deducted from growth. Actual tax liability depends on your specific Provincial/Federal situation.</p>
-        </div>
+                <div class="text-center text-xs text-muted-foreground pb-8 space-y-1">
+                    <p>Disclaimer: Educational purposes only. Gaussian distribution used for Monte Carlo.</p>
+                    <p>Note: Values are <strong>PRE-TAX</strong>. Investment fees deducted. Actual tax liability depends on jurisdiction.</p>
+                </div>
 
+            </div>
+        </main>
     </div>
 
+    <!-- Logic Script -->
     <script>
         // --- Utilities ---
         const formatCurrency = (num) => {
@@ -499,15 +639,14 @@
         
         const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
-        // SEEDED Random Number Generator (Linear Congruential Generator)
-        let masterSeed = 1; // Default seed
+        // SEEDED Random Number Generator
+        let masterSeed = 1; 
         
         function seededRandom() {
             var x = Math.sin(masterSeed++) * 10000;
             return x - Math.floor(x);
         }
 
-        // Gaussian Random Number Generator using Seeded Random
         function randn_bm() {
             let u = 0, v = 0;
             while(u === 0) u = seededRandom(); 
@@ -515,7 +654,6 @@
             return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
         }
 
-        // Helper to calculate Median of an array
         function getMedian(values) {
             if(values.length === 0) return 0;
             values.sort((a, b) => a - b);
@@ -527,13 +665,12 @@
         let myChart = null;
         const currentYearGlobal = new Date().getFullYear();
 
-        // --- STORAGE LOGIC ---
+        // --- STORAGE ---
         const STORAGE_KEY = 'canadianFireCalcData';
 
         function saveData() {
             const inputs = document.querySelectorAll('.save-input');
             const data = {};
-            
             inputs.forEach(input => {
                 if(input.classList.contains('currency-input')) {
                     data[input.id] = parseCurrencyInput(input.value);
@@ -546,18 +683,21 @@
                 }
             });
             data['withdrawalAmount'] = parseCurrencyInput(document.getElementById('withdrawalAmount').value);
-
+            data['theme'] = document.getElementById('themeSelect').value; // Save Theme
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
         function loadData() {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (!stored) return false;
-
             try {
                 const data = JSON.parse(stored);
-                
                 for (const [id, value] of Object.entries(data)) {
+                    if(id === 'theme') {
+                        setTheme(value);
+                        document.getElementById('themeSelect').value = value;
+                        continue;
+                    }
                     const input = document.getElementById(id);
                     if (input) {
                         if (input.classList.contains('currency-input')) {
@@ -571,13 +711,10 @@
                         }
                     }
                 }
-
                 // Update dependent labels
                 const stocks = document.getElementById('stockAlloc').value;
-                const bonds = 100 - stocks;
-                document.getElementById('mixLabel').innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
+                document.getElementById('mixLabel').innerText = `${stocks}% Stocks`;
 
-                // Update dynamic sliders with loaded values
                 const incomeSlider = document.getElementById('currentIncomeEnd');
                 document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
                 
@@ -585,88 +722,77 @@
                 document.getElementById('otherIncomeStartLabel').innerText = otherIncomeStartSlider.value;
 
                 return true;
-
             } catch (e) {
-                console.error("Error loading saved data", e);
+                console.error("Error loading data", e);
                 return false;
             }
         }
         
         function resetData() {
-            if(confirm("Are you sure you want to reset all values to defaults?")) {
+            if(confirm("Reset all values to defaults?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
         }
 
-
-        // --- Input Formatting Logic with Validation ---
-        const currencyInputs = document.querySelectorAll('.currency-input');
+        // --- THEME LOGIC ---
+        function setTheme(themeName) {
+            // Remove previous theme class logic, using data attribute now
+            document.documentElement.setAttribute('data-theme', themeName);
+            // Re-render chart to pick up new colors
+            calculate(); 
+        }
         
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+            setTheme(e.target.value);
+            saveData();
+        });
+
+        // --- Inputs ---
+        const currencyInputs = document.querySelectorAll('.currency-input');
         currencyInputs.forEach(input => {
             input.addEventListener('focus', (e) => {
                 const val = parseCurrencyInput(e.target.value);
                 e.target.value = val === 0 ? '' : val;
             });
-
             input.addEventListener('blur', (e) => {
-                const originalVal = parseCurrencyInput(e.target.value);
-                let val = originalVal;
-                
-                // Check for max limit (data-max attribute)
+                let val = parseCurrencyInput(e.target.value);
                 const max = parseFloat(e.target.getAttribute('data-max'));
-                if (!isNaN(max) && val > max) {
-                    val = max;
-                }
-                
-                // Special check for Withdrawal Amount (50% of Portfolio)
+                if (!isNaN(max) && val > max) val = max;
                 if (e.target.id === 'withdrawalAmount') {
                     const total = getTotalPortfolio();
-                    if (total > 0 && val > total * 0.5) {
-                        val = total * 0.5;
-                    }
+                    if (total > 0 && val > total * 0.5) val = total * 0.5;
                 }
-
                 e.target.value = formatCurrency(val);
                 calculate(); 
                 if(input.classList.contains('save-input')) saveData(); 
             });
-            
             input.addEventListener('keypress', (e) => {
                 if(e.key === 'Enter') e.target.blur();
             });
         });
         
-        // Enforce limits on standard number inputs on change/blur
         document.querySelectorAll('input[type="number"]').forEach(input => {
             const enforceLimit = () => {
                 const val = parseFloat(input.value);
                 const min = parseFloat(input.min);
                 const max = parseFloat(input.max);
-                
                 if (!isNaN(min) && val < min) input.value = min;
                 if (!isNaN(max) && val > max) input.value = max;
-                
                 calculate();
                 if(input.classList.contains('save-input')) saveData();
             };
             input.addEventListener('change', enforceLimit);
         });
 
-        // --- Slider Logic ---
         const stockSlider = document.getElementById('stockAlloc');
-        const mixLabel = document.getElementById('mixLabel');
-
         stockSlider.addEventListener('input', (e) => {
-            const stocks = e.target.value;
-            const bonds = 100 - stocks;
-            mixLabel.innerText = `${stocks}% Stocks / ${bonds}% Bonds`;
+            document.getElementById('mixLabel').innerText = `${e.target.value}% Stocks`;
             calculate();
         });
         stockSlider.addEventListener('change', saveData); 
 
-        
-        // --- Sliders for Years (Current/Side Income and Other Income) ---
+        // Sliders
         const yearsInput = document.getElementById('years');
         const incomeSlider = document.getElementById('currentIncomeEnd');
         const incomeLabel = document.getElementById('currentIncomeEndLabel');
@@ -677,26 +803,15 @@
             const yearsToProject = parseInt(yearsInput.value) || 50;
             const maxYear = currentYearGlobal + yearsToProject;
             
-            // Current Income Slider
-            const currentIncVal = parseInt(incomeSlider.value);
-            incomeSlider.min = currentYearGlobal;
-            incomeSlider.max = maxYear;
+            [incomeSlider, otherIncomeStartSlider].forEach(slider => {
+                const val = parseInt(slider.value);
+                slider.min = currentYearGlobal;
+                slider.max = maxYear;
+                if (val > maxYear) slider.value = maxYear;
+                if (val < currentYearGlobal) slider.value = currentYearGlobal;
+            });
             
-            // Adjust value if out of bounds (but default to roughly 5 years from now if first load)
-            // If the user's saved value is within the new range, keep it. If out of bounds, clamp it.
-            // But on fresh load, 'value' attribute is set. 
-            // We just ensure it respects the new max.
-            if (currentIncVal > maxYear) incomeSlider.value = maxYear;
-            if (currentIncVal < currentYearGlobal) incomeSlider.value = currentYearGlobal;
             incomeLabel.innerText = incomeSlider.value;
-
-            // Other Income Slider
-            const otherIncVal = parseInt(otherIncomeStartSlider.value);
-            otherIncomeStartSlider.min = currentYearGlobal;
-            otherIncomeStartSlider.max = maxYear;
-            
-            if (otherIncVal > maxYear) otherIncomeStartSlider.value = maxYear;
-            if (otherIncVal < currentYearGlobal) otherIncomeStartSlider.value = currentYearGlobal;
             otherIncomeStartLabel.innerText = otherIncomeStartSlider.value;
         }
         
@@ -711,18 +826,12 @@
             calculate();
         });
         otherIncomeStartSlider.addEventListener('change', saveData);
-        
-        yearsInput.addEventListener('input', () => {
-            updateSliderRanges();
-            // calc triggered via change event on years input listener
-        });
+        yearsInput.addEventListener('input', updateSliderRanges);
 
-        
-        // --- Sync Logic for Withdrawal Rate / Amount ---
+        // Sync Logic
         const withdrawalRateInput = document.getElementById('withdrawalRate');
         const withdrawalAmountInput = document.getElementById('withdrawalAmount');
         
-        // Helper to get total portfolio
         function getTotalPortfolio() {
              const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
              const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
@@ -731,112 +840,69 @@
              return tfsa + rrsp + nonreg + cash;
         }
 
-        // When Rate Changes -> Update Amount
         withdrawalRateInput.addEventListener('input', (e) => {
-             // Rate limit check
              let val = parseFloat(e.target.value);
              if (val > 50) val = 50; 
-             
              const rate = val / 100;
              const total = getTotalPortfolio();
              const amount = total * rate;
              withdrawalAmountInput.value = formatCurrency(amount);
         });
         
-        // Ensure Rate limit on blur
         withdrawalRateInput.addEventListener('blur', (e) => {
             let val = parseFloat(e.target.value);
             if (val > 50) { e.target.value = 50; calculate(); }
             if (val < 0) { e.target.value = 0; calculate(); }
         });
 
-        // When Amount Changes -> Update Rate
         withdrawalAmountInput.addEventListener('input', (e) => {
             const amount = parseFloat(e.target.value) || 0;
             const total = getTotalPortfolio();
-            
-            if(total > 0) {
+            if (total > 0) {
                 const rate = (amount / total) * 100;
                 withdrawalRateInput.value = parseFloat(rate.toFixed(4));
             }
             calculate();
         });
 
-
-        // --- Main Logic ---
+        // --- Calc Engine ---
         function calculate() {
-            // Note: We do NOT reset seed=1 here anymore.
-            // Why? Because we want the seed to stay the same across input events (no jitter).
-            // But we do want it to change when the button is clicked.
-            // The button click handler handles seed reset.
-            // If we reset seed=1 here, the button would fail to work because this function
-            // runs after the button updates the seed.
-            // HOWEVER: We need a way to maintain the SAME seed sequence for the current view.
-            // So we need a `currentRunSeed` that persists across calculate() calls
-            // until the button is clicked.
-            
-            // We use `masterSeed` as the starting point.
-            // We need a local working variable to not corrupt the master.
-            let workingSeed = masterSeed;
-            
-            // Helper for this run
-            function getNextRandom() {
-                var x = Math.sin(workingSeed++) * 10000;
-                return x - Math.floor(x);
-            }
-            // Override the global randn for this scope (simpler than passing args)
-            const localRandn = () => {
-                let u = 0, v = 0;
-                while(u === 0) u = getNextRandom(); 
-                while(v === 0) v = getNextRandom();
-                return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-            };
+            masterSeed = 1; // Reset seed for stability on input change
 
-
-            // 1. Gather Inputs
+            // Gather
             const age = parseInt(document.getElementById('age').value);
             const years = parseInt(document.getElementById('years').value);
             
-            // Portfolio
             const totalPortfolio = getTotalPortfolio();
             document.getElementById('displayTotalPortfolio').innerText = formatCurrency(totalPortfolio);
 
-            // Assumptions
-            
             const inflationRate = parseFloat(document.getElementById('inflation').value) / 100;
             const marketMean = parseFloat(document.getElementById('marketReturn').value) / 100;
             const marketStdDev = parseFloat(document.getElementById('marketVariance').value) / 100;
             const bondReturn = parseFloat(document.getElementById('bondReturn').value) / 100;
             const merFee = parseFloat(document.getElementById('merFee').value) / 100;
-            
             const flexibleSpending = document.getElementById('flexibleSpending').checked;
 
-            // Investment Mix
-            const stockPct = parseInt(stockSlider.value) / 100;
+            const stockPct = parseInt(document.getElementById('stockAlloc').value) / 100;
             const bondPct = 1 - stockPct;
 
-            // Income Sources
             const otherIncomeAmt = parseCurrencyInput(document.getElementById('otherIncome').value);
             const otherIncomeYear = parseInt(document.getElementById('otherIncomeStart').value);
-            
             const currentIncomeAmt = parseCurrencyInput(document.getElementById('currentIncome').value);
             const currentIncomeEndYear = parseInt(incomeSlider.value); 
 
-            // --- MASTER LOGIC ---
+            // Withdrawal Master Logic
             let initialWithdrawalDollar;
             let withdrawRate; 
 
             if (document.activeElement === withdrawalRateInput) {
-                // Rate is Master
                 withdrawRate = parseFloat(withdrawalRateInput.value) / 100;
                 initialWithdrawalDollar = totalPortfolio * withdrawRate;
                 withdrawalAmountInput.value = formatCurrency(initialWithdrawalDollar);
             } else {
-                // Amount is Master
                 initialWithdrawalDollar = parseCurrencyInput(withdrawalAmountInput.value);
                 if (totalPortfolio > 0) {
                     withdrawRate = initialWithdrawalDollar / totalPortfolio;
-                    // Dont update input while focused
                     if(document.activeElement !== withdrawalAmountInput) {
                          withdrawalRateInput.value = parseFloat((withdrawRate * 100).toFixed(4));
                     }
@@ -845,85 +911,61 @@
                 }
             }
 
-
-            // --- Blended Return Calculation ---
+            // Blended Returns
             const tfsa = parseCurrencyInput(document.getElementById('tfsa').value);
             const rrsp = parseCurrencyInput(document.getElementById('rrsp').value);
             const nonreg = parseCurrencyInput(document.getElementById('nonreg').value);
             const cash = parseCurrencyInput(document.getElementById('cash').value);
             
-            const wInvested = (tfsa + rrsp + nonreg + cash > 0) ? (tfsa + rrsp + nonreg) / totalPortfolio : 0;
-            // Correction: This logic was a bit simplified in previous versions. 
-            // Let's stick to the mix slider logic applied to "Investable Assets" vs Cash.
-            // Simplified: Stock% applies to (TFSA+RRSP+NonReg). Cash is 100% Fixed.
-            
             const investedTotal = tfsa + rrsp + nonreg;
             const cashTotal = cash;
             const grandTotal = investedTotal + cashTotal;
             
-            // Weighted returns
-            // Stock portion = Invested * Stock%
-            // Bond portion = Invested * Bond% + Cash
-            
             const totalStock = investedTotal * stockPct;
             const totalBond = (investedTotal * bondPct) + cashTotal;
             
-            // Weights for overall portfolio
             const wStock = (grandTotal > 0) ? totalStock / grandTotal : 0;
             const wBond = (grandTotal > 0) ? totalBond / grandTotal : 0;
 
-            // Gross Blended Return
             let blendedMean = (wStock * marketMean) + (wBond * bondReturn);
-            
-            // Apply MER Fees (Net Return) - assuming MER applies to whole portfolio for simplicity
-            // or maybe just invested? Let's keep it simple: applies to growth.
             blendedMean = blendedMean - merFee;
-
-            // Standard Deviation 
             const blendedStdDev = wStock * marketStdDev;
 
-
-            // --- Monte Carlo Simulation (100 Runs) ---
+            // Monte Carlo (100 Runs)
             const numSimulations = 100;
             const simulationDatasets = [];
             let successes = 0;
             let finalBalances = [];
-            
             let earliestFailureIndex = -1;
             let minFailureStep = Infinity;
 
             let yearlyAggregates = Array(years + 1).fill(null).map(() => ({
-                balances: [],
-                withdrawals: [],
-                incomes: [],
-                growths: []
+                balances: [], withdrawals: [], incomes: [], growths: []
             }));
 
-            // Initialize Year 0
-            for(let s=0; s<numSimulations; s++) {
-                yearlyAggregates[0].balances.push(totalPortfolio);
-            }
+            // Init Year 0
+            for(let s=0; s<numSimulations; s++) yearlyAggregates[0].balances.push(totalPortfolio);
 
             for (let s = 0; s < numSimulations; s++) {
                 let simBal = totalPortfolio;
                 let simWithdrawal = initialWithdrawalDollar;
                 let dataPoints = [simBal]; 
-                
                 let runFailedStep = Infinity; 
 
                 for (let i = 1; i <= years; i++) {
                     const year = currentYearGlobal + i;
                     
-                    // Use localRandn wrapper
-                    const randomReturn = blendedMean + (blendedStdDev * localRandn());
+                    // Local wrapper for seeded random
+                    let u = 0, v = 0;
+                    while(u === 0) { var x = Math.sin(masterSeed++) * 10000; u = x - Math.floor(x); }
+                    while(v === 0) { var y = Math.sin(masterSeed++) * 10000; v = y - Math.floor(y); }
+                    const rnd = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+                    
+                    const randomReturn = blendedMean + (blendedStdDev * rnd);
                     
                     let simIncome = 0;
-                    if (year >= otherIncomeYear) {
-                        simIncome += otherIncomeAmt * Math.pow(1 + inflationRate, i);
-                    }
-                    if (year <= currentIncomeEndYear) {
-                        simIncome += currentIncomeAmt * Math.pow(1 + inflationRate, i);
-                    }
+                    if (year >= otherIncomeYear) simIncome += otherIncomeAmt * Math.pow(1 + inflationRate, i);
+                    if (year <= currentIncomeEndYear) simIncome += currentIncomeAmt * Math.pow(1 + inflationRate, i);
 
                     let net = simIncome - simWithdrawal;
                     let investable = simBal + net;
@@ -935,9 +977,7 @@
 
                     if (end <= 0) {
                         end = 0;
-                        if (runFailedStep === Infinity) {
-                            runFailedStep = i;
-                        }
+                        if (runFailedStep === Infinity) runFailedStep = i;
                     }
 
                     yearlyAggregates[i].balances.push(end);
@@ -946,33 +986,30 @@
                     yearlyAggregates[i].growths.push(growth);
 
                     let nextWithdrawal = simWithdrawal;
-                    if (flexibleSpending && randomReturn < 0) {
-                        nextWithdrawal = simWithdrawal;
-                    } else {
-                        nextWithdrawal = simWithdrawal * (1 + inflationRate);
-                    }
+                    if (flexibleSpending && randomReturn < 0) nextWithdrawal = simWithdrawal;
+                    else nextWithdrawal = simWithdrawal * (1 + inflationRate);
 
                     simBal = end;
                     simWithdrawal = nextWithdrawal;
                     
-                    if (dataPoints[dataPoints.length - 1] > 0) {
-                        dataPoints.push(simBal);
-                    }
+                    if (dataPoints[dataPoints.length - 1] > 0) dataPoints.push(simBal);
                 }
 
                 if (runFailedStep === Infinity) successes++;
-                
                 finalBalances.push(simBal);
-                
                 if (runFailedStep < minFailureStep) {
                     minFailureStep = runFailedStep;
                     earliestFailureIndex = s;
                 }
 
+                // Color Selection based on Theme
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                const lineColor = isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(56, 189, 248, 0.1)'; // Blue-600 vs Sky-400
+
                 simulationDatasets.push({
                     label: `Sim ${s}`,
                     data: dataPoints,
-                    borderColor: 'rgba(56, 189, 248, 0.1)', 
+                    borderColor: lineColor,
                     borderWidth: 1,
                     pointRadius: 0,
                     fill: false,
@@ -983,7 +1020,7 @@
             
             if (earliestFailureIndex !== -1) {
                 const failSet = simulationDatasets[earliestFailureIndex];
-                failSet.borderColor = 'rgba(239, 68, 68, 0.9)'; 
+                failSet.borderColor = 'rgba(244, 63, 94, 0.8)'; // Rose-500
                 failSet.borderWidth = 2;
                 failSet.label = "Earliest Failure";
                 failSet.order = 2; 
@@ -1000,8 +1037,7 @@
             document.getElementById('p10End').innerText = formatCurrency(p10Val);
             document.getElementById('p90End').innerText = formatCurrency(p90Val);
 
-
-            // --- Generate Median Path Table ---
+            // Table Data
             const medianPathData = [];
             const tbody = document.getElementById('projectionBody');
             tbody.innerHTML = '';
@@ -1010,7 +1046,6 @@
                 const year = currentYearGlobal + i;
                 const ageNow = age + i;
                 const agg = yearlyAggregates[i];
-
                 const medianBal = getMedian(agg.balances);
                 medianPathData.push(medianBal);
 
@@ -1022,33 +1057,49 @@
                     const realBal = medianBal / Math.pow(1 + inflationRate, i);
 
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-800/50 transition-colors";
+                    tr.className = "hover:bg-muted/50 transition-colors border-b border-border";
                     tr.innerHTML = `
-                        <td class="p-4 text-slate-400">${year}</td>
-                        <td class="p-4 text-slate-400">${ageNow}</td>
-                        <td class="p-4 text-right font-mono text-slate-300">${formatCurrency(prevMedianBal)}</td>
-                        <td class="p-4 text-right font-mono text-rose-400">-${formatCurrency(medianWithdraw)}</td>
-                        <td class="p-4 text-right font-mono text-emerald-400">+${formatCurrency(medianIncome)}</td>
-                        <td class="p-4 text-right font-mono text-emerald-600">${formatCurrency(medianGrowth)}</td>
-                        <td class="p-4 text-right font-mono font-bold text-white">${formatCurrency(medianBal)}</td>
-                        <td class="p-4 text-right font-mono text-purple-400">${formatCurrency(realBal)}</td>
+                        <td class="p-4 text-muted-foreground">${year}</td>
+                        <td class="p-4 text-muted-foreground">${ageNow}</td>
+                        <td class="p-4 text-right font-mono text-foreground">${formatCurrency(prevMedianBal)}</td>
+                        <td class="p-4 text-right font-mono text-rose-400/90">-${formatCurrency(medianWithdraw)}</td>
+                        <td class="p-4 text-right font-mono text-emerald-400/90">+${formatCurrency(medianIncome)}</td>
+                        <td class="p-4 text-right font-mono text-emerald-600/90">${formatCurrency(medianGrowth)}</td>
+                        <td class="p-4 text-right font-mono font-bold text-foreground">${formatCurrency(medianBal)}</td>
+                        <td class="p-4 text-right font-mono text-purple-400/90">${formatCurrency(realBal)}</td>
                     `;
                     tbody.appendChild(tr);
                 } 
             }
 
+            // Chart Colors
+            const style = getComputedStyle(document.documentElement); // Changed to documentElement to catch root variables reliably
+            const gridColorRaw = style.getPropertyValue('--chart-grid').trim();
+            const textColorRaw = style.getPropertyValue('--chart-text').trim();
+            
+            // Helper to wrap CSS vars in hsl() if they aren't hex
+            const getColor = (varName) => {
+                const val = style.getPropertyValue(varName).trim();
+                // If it looks like HSL channels (has spaces/percentages but no commas/parentheses), wrap it
+                if (val && !val.startsWith('#') && !val.startsWith('hsl')) {
+                    return `hsl(${val})`;
+                }
+                return val;
+            };
 
-            // 5. Render Chart
+            const gridColor = gridColorRaw.startsWith('#') ? gridColorRaw : getColor('--border'); // Fallback to border if chart-grid fails
+            const textColor = textColorRaw.startsWith('#') ? textColorRaw : getColor('--muted-foreground');
+            const medianColor = '#fbbf24'; // Amber-400
+
             const ctx = document.getElementById('fireChart').getContext('2d');
             const labels = [];
             for(let i=0; i<=years; i++) labels.push(currentYearGlobal + i);
-
             const yMax = Math.max(p90Val, totalPortfolio) * 1.25;
 
             const avgDataset = {
                 label: 'Median Market Path',
                 data: medianPathData,
-                borderColor: '#fbbf24', // Amber/Gold
+                borderColor: medianColor, 
                 borderWidth: 3,
                 pointRadius: 0,
                 tension: 0.4,
@@ -1059,10 +1110,7 @@
 
             myChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [avgDataset, ...simulationDatasets]
-                },
+                data: { labels, datasets: [avgDataset, ...simulationDatasets] },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -1071,6 +1119,13 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
+                            // Use the helper to ensure valid HSL strings
+                            backgroundColor: getColor('--popover') || '#18181b',
+                            titleColor: getColor('--popover-foreground') || '#f4f4f5',
+                            bodyColor: getColor('--muted-foreground') || '#a1a1aa',
+                            borderColor: getColor('--border') || '#27272a',
+                            borderWidth: 1,
+                            padding: 12,
                             callbacks: {
                                 title: function(tooltipItems) {
                                     const year = parseInt(tooltipItems[0].label);
@@ -1093,9 +1148,10 @@
                         y: {
                             beginAtZero: true,
                             max: yMax,
-                            grid: { color: '#334155' },
+                            grid: { color: gridColor },
                             ticks: {
-                                color: '#94a3b8',
+                                color: textColor,
+                                font: { family: 'Inter', size: 10 },
                                 callback: function(value, index, values) {
                                     if (index === values.length - 1) return null;
                                     if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
@@ -1106,8 +1162,8 @@
                             }
                         },
                         x: {
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
+                            grid: { color: gridColor },
+                            ticks: { color: textColor, font: { family: 'Inter', size: 10 } }
                         }
                     },
                     interaction: {
@@ -1119,7 +1175,7 @@
             });
         }
 
-        // --- Event Listeners ---
+        // Listeners
         document.getElementById('calcBtn').addEventListener('click', () => {
             masterSeed = Math.floor(Math.random() * 100000);
             calculate();
@@ -1138,13 +1194,11 @@
         document.getElementById('currentIncome').addEventListener('blur', calculate); 
         document.getElementById('resetBtn').addEventListener('click', resetData);
 
-        // Auto-update wrapper for Portfolio Changes
-        const portfolioWrapper = document.querySelector('.lg\\:col-span-3'); 
+        const portfolioWrapper = document.querySelector('.lg\\:w-\\[420px\\]'); 
         portfolioWrapper.addEventListener('input', (e) => {
             if(e.target.classList.contains('portfolio-input')) {
                 const total = getTotalPortfolio();
                 document.getElementById('displayTotalPortfolio').innerText = formatCurrency(total);
-                
                 const amount = parseCurrencyInput(document.getElementById('withdrawalAmount').value);
                 if (total > 0) {
                     const rate = (amount / total) * 100;
@@ -1156,25 +1210,17 @@
         // Initialize
         window.onload = function() {
             const dataLoaded = loadData();
-            
             updateSliderRanges();
-
             const incomeSlider = document.getElementById('currentIncomeEnd');
             document.getElementById('currentIncomeEndLabel').innerText = incomeSlider.value;
-            
-            if (dataLoaded) {
-                document.getElementById('otherIncomeStartLabel').innerText = document.getElementById('otherIncomeStart').value;
-            }
-
+            if (dataLoaded) document.getElementById('otherIncomeStartLabel').innerText = document.getElementById('otherIncomeStart').value;
             if (!dataLoaded) {
                 const total = getTotalPortfolio();
                 const defaultRate = parseFloat(document.getElementById('withdrawalRate').value) / 100;
                 document.getElementById('withdrawalAmount').value = formatCurrency(total * defaultRate);
             }
-
             calculate();
         };
-
     </script>
 </body>
 </html>
