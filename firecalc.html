@@ -1,552 +1,554 @@
-/*
- * (c) 2025-2026 Corwin. All Rights Reserved.
- * Official Tool for: https://cor.win/
- * Unauthorized reproduction, distribution, modification, or use of this
- * code for commercial purposes is strictly prohibited without express
- * written permission.
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corwin's FIRE Calc (Canada)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+      tailwind.config = {
+          darkMode: 'class',
+          theme: {
+              extend: {
+                  fontFamily: {
+                      sans: ['Inter', 'sans-serif'],
+                      mono: ['JetBrains Mono', 'monospace'],
+                  },
+                  colors: {
+                      border: "hsl(var(--border))",
+                      input: "hsl(var(--input))",
+                      ring: "hsl(var(--ring))",
+                      background: "hsl(var(--background))",
+                      foreground: "hsl(var(--foreground))",
+                      primary: {
+                          DEFAULT: "hsl(var(--primary))",
+                          foreground: "hsl(var(--primary-foreground))",
+                      },
+                      secondary: {
+                          DEFAULT: "hsl(var(--secondary))",
+                          foreground: "hsl(var(--secondary-foreground))",
+                      },
+                      muted: {
+                          DEFAULT: "hsl(var(--muted))",
+                          foreground: "hsl(var(--muted-foreground))",
+                      },
+                      card: {
+                          DEFAULT: "hsl(var(--card))",
+                          foreground: "hsl(var(--card-foreground))",
+                      },
+                  }
+              }
+          }
+      }
+  </script>
 
-import React, { useState, useEffect, useRef } from 'react';
-import Chart from 'chart.js/auto';
-import { Leaf, User, Coins, Sliders, Banknote, Dices, Info, ChevronDown, Share2 } from 'lucide-react';
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-const THEMES = {
-  zinc: `
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 9%;
-    --card-foreground: 0 0% 98%;
-    --primary: 75 100% 50%;
-    --primary-foreground: 240 10% 4%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
-    --border: 240 4% 16%;
-    --ring: 75 100% 50%;
-    --chart-grid: rgba(255,255,255,0.05);
-    --chart-text: #94a3b8;
-    --card-gradient: linear-gradient(135deg, hsl(240 10% 4%) 0%, hsl(75 100% 10%) 100%);
-    --primary-gradient: linear-gradient(135deg, hsl(75 100% 50%) 0%, hsl(75 100% 35%) 100%);
-  `,
-  sage: `
-    --background: 155 10% 6%;
-    --foreground: 155 10% 98%;
-    --card: 155 10% 10%;
-    --card-foreground: 155 10% 98%;
-    --primary: 150 100% 45%;
-    --primary-foreground: 155 20% 10%;
-    --muted: 155 10% 18%;
-    --muted-foreground: 155 10% 65%;
-    --border: 155 10% 18%;
-    --ring: 150 100% 45%;
-    --chart-grid: rgba(255,255,255,0.05);
-    --chart-text: #94a3b8;
-    --card-gradient: linear-gradient(135deg, hsl(155 10% 6%) 0%, hsl(150 100% 10%) 100%);
-    --primary-gradient: linear-gradient(135deg, hsl(150 100% 45%) 0%, hsl(150 100% 30%) 100%);
-  `,
-  light: `
-    --background: 210 40% 98%;
-    --foreground: 240 10% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --primary: 84 81% 44%;
-    --primary-foreground: 0 0% 100%;
-    --muted: 240 5% 90%;
-    --muted-foreground: 240 4% 46%;
-    --border: 240 6% 85%;
-    --ring: 84 81% 44%;
-    --chart-grid: rgba(0,0,0,0.05);
-    --chart-text: #64748b;
-    --card-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(84 81% 90%) 100%);
-    --primary-gradient: linear-gradient(135deg, hsl(84 81% 44%) 0%, hsl(84 81% 30%) 100%);
-  `
-};
-
-const formatCurrency = (num) => {
-  if (isNaN(num)) return '$0';
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(num);
-};
-
-const parseCurrency = (val) => {
-  const clean = String(val).replace(/[^0-9.]/g, '');
-  return parseFloat(clean) || 0;
-};
-
-let baseSeed = 1;
-
-const getMedian = (values) => {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const half = Math.floor(sorted.length / 2);
-  if (sorted.length % 2) return sorted[half];
-  return (sorted[half - 1] + sorted[half]) / 2.0;
-};
-
-const Tooltip = ({ text }) => (
-  <div className="group relative ml-1 inline-flex items-center">
-    <Info className="h-3 w-3 text-[hsl(var(--primary))/70] cursor-help transition-colors hover:text-[hsl(var(--primary))]" />
-    <div className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-56 opacity-0 shadow-xl transition-all group-hover:opacity-100 bg-[hsl(var(--card))] border border-[hsl(var(--primary))/30] text-[hsl(var(--foreground))] text-xs rounded-lg p-3 normal-case font-medium text-left backdrop-blur-sm">
-      {text}
-    </div>
-  </div>
-);
-
-const CurrencyInput = ({ label, value, onChange, max, tooltip, icon: Icon }) => {
-  const [localVal, setLocalVal] = useState(formatCurrency(value));
-  const [isFocused, setIsFocused] = useState(false);
-
-  useEffect(() => {
-    if (!isFocused) {
-      setLocalVal(formatCurrency(value));
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
     }
-  }, [value, isFocused]);
-
-  const handleFocus = () => {
-    setIsFocused(true);
-    setLocalVal(value === 0 ? '' : value.toString());
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    let num = parseCurrency(localVal);
-    if (max !== undefined && num > max) num = max;
-    onChange(num);
-  };
-
-  return (
-    <div className="space-y-1.5 w-full">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">
-          {Icon && <Icon className="h-3 w-3" />}
-          {label}
-        </label>
-        {tooltip && <Tooltip text={tooltip} />}
-      </div>
-      <input
-        type="text"
-        value={localVal}
-        onChange={(e) => setLocalVal(e.target.value)}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-        className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]"
-      />
-    </div>
-  );
-};
-
-const FormInput = ({ label, value, onChange, tooltip, type = "text", min, max, step, icon: Icon }) => {
-  const [localVal, setLocalVal] = useState(value);
-  const [isFocused, setIsFocused] = useState(false);
-
-  useEffect(() => {
-    if (!isFocused) {
-      setLocalVal(value);
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
     }
-  }, [value, isFocused]);
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: hsl(var(--border));
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--muted-foreground));
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
 
-  const handleFocus = () => {
-    setIsFocused(true);
-  };
+  <script type="text/babel">
+    /*
+     * (c) 2025-2026 Corwin. All Rights Reserved.
+     * Official Tool for: https://cor.win/
+     * Unauthorized reproduction, distribution, modification, or use of this
+     * code for commercial purposes is strictly prohibited without express
+     * written permission.
+     */
 
-  const handleBlur = () => {
-    setIsFocused(false);
-    let num = parseFloat(localVal);
-    if (isNaN(num)) num = 0;
-    if (min !== undefined && num < min) num = min;
-    if (max !== undefined && num > max) num = max;
-    setLocalVal(num);
-    onChange(num);
-  };
+    const { useState, useEffect, useRef } = React;
 
-  return (
-    <div className="space-y-1.5 w-full">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">
-          {Icon && <Icon className="h-3 w-3" />}
-          {label}
-        </label>
-        {tooltip && <Tooltip text={tooltip} />}
-      </div>
-      <input
-        type={type}
-        value={localVal}
-        onChange={(e) => setLocalVal(e.target.value)}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-        min={min}
-        max={max}
-        step={step}
-        className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]"
-      />
-    </div>
-  );
-};
+    // --- Icon Components ---
+    const Leaf = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 20A7 7 0 0 1 14 6a7 7 0 0 1 7 7v7h-7a7 7 0 0 1-3-10z"></path></svg>;
+    const User = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
+    const Coins = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path><path d="m16.71 13.88.7.71-2.82 2.82"></path></svg>;
+    const Sliders = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="4" x2="20" y1="21" y2="14"></line><line x1="4" x2="20" y1="10" y2="3"></line><line x1="12" x2="12" y1="21" y2="14"></line><line x1="12" x2="12" y1="10" y2="3"></line><path d="M8 14h8v-4H8v4z"></path></svg>;
+    const Banknote = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="12" x="2" y="6" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>;
+    const Dices = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="12" height="12" x="2" y="10" rx="2" ry="2"></rect><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"></path><path d="M6 18h.01"></path><path d="M10 14h.01"></path><path d="M15 6h.01"></path><path d="M18 9h.01"></path></svg>;
+    const Info = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>;
+    const ChevronDown = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"></path></svg>;
+    const Share2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>;
 
-const Card = ({ title, icon: Icon, children, className = '' }) => (
-  <div className={`rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-md transition-colors duration-300 ${className}`}>
-    {title && (
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">
-        {Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}
-        {title}
-      </h3>
-    )}
-    {children}
-  </div>
-);
+    const THEMES = {
+      zinc: `
+        --background: 240 10% 4%;
+        --foreground: 0 0% 98%;
+        --card: 240 10% 9%;
+        --card-foreground: 0 0% 98%;
+        --primary: 75 100% 50%;
+        --primary-foreground: 240 10% 4%;
+        --muted: 240 4% 16%;
+        --muted-foreground: 240 5% 65%;
+        --border: 240 4% 16%;
+        --ring: 75 100% 50%;
+        --chart-grid: rgba(255,255,255,0.05);
+        --chart-text: #94a3b8;
+        --card-gradient: linear-gradient(135deg, hsl(240 10% 4%) 0%, hsl(75 100% 10%) 100%);
+        --primary-gradient: linear-gradient(135deg, hsl(75 100% 50%) 0%, hsl(75 100% 35%) 100%);
+      `,
+      sage: `
+        --background: 155 10% 6%;
+        --foreground: 155 10% 98%;
+        --card: 155 10% 10%;
+        --card-foreground: 155 10% 98%;
+        --primary: 150 100% 45%;
+        --primary-foreground: 155 20% 10%;
+        --muted: 155 10% 18%;
+        --muted-foreground: 155 10% 65%;
+        --border: 155 10% 18%;
+        --ring: 150 100% 45%;
+        --chart-grid: rgba(255,255,255,0.05);
+        --chart-text: #94a3b8;
+        --card-gradient: linear-gradient(135deg, hsl(155 10% 6%) 0%, hsl(150 100% 10%) 100%);
+        --primary-gradient: linear-gradient(135deg, hsl(150 100% 45%) 0%, hsl(150 100% 30%) 100%);
+      `,
+      light: `
+        --background: 210 40% 98%;
+        --foreground: 240 10% 4%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 4%;
+        --primary: 84 81% 44%;
+        --primary-foreground: 0 0% 100%;
+        --muted: 240 5% 90%;
+        --muted-foreground: 240 4% 46%;
+        --border: 240 6% 85%;
+        --ring: 84 81% 44%;
+        --chart-grid: rgba(0,0,0,0.05);
+        --chart-text: #64748b;
+        --card-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(84 81% 90%) 100%);
+        --primary-gradient: linear-gradient(135deg, hsl(84 81% 44%) 0%, hsl(84 81% 30%) 100%);
+      `
+    };
 
-const CollapsibleCard = ({ title, icon: Icon, children, defaultOpen = true, className = '' }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+    const formatCurrency = (num) => {
+      if (isNaN(num)) return '$0';
+      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(num);
+    };
 
-  return (
-    <div className={`rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-md transition-colors duration-300 overflow-hidden ${className}`}>
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-5 hover:bg-[hsl(var(--muted))/50] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-inset"
-      >
-        <div className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">
-          {Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}
-          {title}
-        </div>
-        <ChevronDown className={`h-4 w-4 text-[hsl(var(--primary))] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-      <div className={`transition-all duration-300 ease-in-out origin-top ${isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="p-5 pt-0">
-          {children}
+    const parseCurrency = (val) => {
+      const clean = String(val).replace(/[^0-9.]/g, '');
+      return parseFloat(clean) || 0;
+    };
+
+    let baseSeed = 1;
+
+    const getMedian = (values) => {
+      if (values.length === 0) return 0;
+      const sorted = [...values].sort((a, b) => a - b);
+      const half = Math.floor(sorted.length / 2);
+      if (sorted.length % 2) return sorted[half];
+      return (sorted[half - 1] + sorted[half]) / 2.0;
+    };
+
+    const Tooltip = ({ text }) => (
+      <div className="group relative ml-1 inline-flex items-center">
+        <Info className="h-3 w-3 text-[hsl(var(--primary))/70] cursor-help transition-colors hover:text-[hsl(var(--primary))]" />
+        <div className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-56 opacity-0 shadow-xl transition-all group-hover:opacity-100 bg-[hsl(var(--card))] border border-[hsl(var(--primary))/30] text-[hsl(var(--foreground))] text-xs rounded-lg p-3 normal-case font-medium text-left backdrop-blur-sm">
+          {text}
         </div>
       </div>
-    </div>
-  );
-};
+    );
 
-const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => (
-  <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
-    <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
-    <div className={`text-2xl font-bold tracking-tight ${highlight && !isGradient ? 'text-[hsl(var(--primary))] drop-shadow-[0_0_8px_hsl(var(--primary)/0.2)]' : 'text-[hsl(var(--foreground))]'}`}>
-      {value}
-    </div>
-    {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
-  </div>
-);
+    const CurrencyInput = ({ label, value, onChange, max, tooltip, icon: Icon }) => {
+      const [localVal, setLocalVal] = useState(formatCurrency(value));
+      const [isFocused, setIsFocused] = useState(false);
 
-const Slider = ({ value, min, max, onChange, label, displayValue }) => (
-  <div className="space-y-2 w-full">
-    {label && (
-      <div className="flex justify-between text-xs font-semibold text-[hsl(var(--muted-foreground))]">
-        <span>{label}</span>
-        <span className="font-mono text-[hsl(var(--foreground))]">{displayValue || value}</span>
+      useEffect(() => {
+        if (!isFocused) {
+          setLocalVal(formatCurrency(value));
+        }
+      }, [value, isFocused]);
+
+      const handleFocus = () => {
+        setIsFocused(true);
+        setLocalVal(value === 0 ? '' : value.toString());
+      };
+
+      const handleBlur = () => {
+        setIsFocused(false);
+        let num = parseCurrency(localVal);
+        if (max !== undefined && num > max) num = max;
+        onChange(num);
+      };
+
+      return (
+        <div className="space-y-1.5 w-full">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+              {Icon && <Icon className="h-3 w-3" />}
+              {label}
+            </label>
+            {tooltip && <Tooltip text={tooltip} />}
+          </div>
+          <input
+            type="text"
+            value={localVal}
+            onChange={(e) => setLocalVal(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+            className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]"
+          />
+        </div>
+      );
+    };
+
+    const FormInput = ({ label, value, onChange, tooltip, type = "text", min, max, step, icon: Icon }) => {
+      const [localVal, setLocalVal] = useState(value);
+      const [isFocused, setIsFocused] = useState(false);
+
+      useEffect(() => {
+        if (!isFocused) {
+          setLocalVal(value);
+        }
+      }, [value, isFocused]);
+
+      const handleFocus = () => {
+        setIsFocused(true);
+      };
+
+      const handleBlur = () => {
+        setIsFocused(false);
+        let num = parseFloat(localVal);
+        if (isNaN(num)) num = 0;
+        if (min !== undefined && num < min) num = min;
+        if (max !== undefined && num > max) num = max;
+        setLocalVal(num);
+        onChange(num);
+      };
+
+      return (
+        <div className="space-y-1.5 w-full">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+              {Icon && <Icon className="h-3 w-3" />}
+              {label}
+            </label>
+            {tooltip && <Tooltip text={tooltip} />}
+          </div>
+          <input
+            type={type}
+            value={localVal}
+            onChange={(e) => setLocalVal(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+            min={min}
+            max={max}
+            step={step}
+            className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]"
+          />
+        </div>
+      );
+    };
+
+    const Card = ({ title, icon: Icon, children, className = '' }) => (
+      <div className={`rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-md transition-colors duration-300 ${className}`}>
+        {title && (
+          <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">
+            {Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}
+            {title}
+          </h3>
+        )}
+        {children}
       </div>
-    )}
-    <input
-      type="range"
-      min={min}
-      max={max}
-      value={value}
-      onChange={(e) => onChange(parseInt(e.target.value))}
-      className="w-full h-1.5 appearance-none rounded-full bg-[hsl(var(--border))] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[hsl(var(--foreground))] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[hsl(var(--primary))] [&::-webkit-slider-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:shadow-[0_0_10px_hsl(var(--primary)/0.5)] [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-[hsl(var(--primary))] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[hsl(var(--foreground))] [&::-moz-range-thumb]:cursor-pointer hover:[&::-moz-range-thumb]:shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all"
-    />
-  </div>
-);
+    );
 
-export default function App() {
-  const currentYear = new Date().getFullYear();
+    const CollapsibleCard = ({ title, icon: Icon, children, defaultOpen = true, className = '' }) => {
+      const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const [theme, setTheme] = useState('zinc');
-  const [isClient, setIsClient] = useState(false);
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
-  const [shareText, setShareText] = useState('Share Link');
+      return (
+        <div className={`rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-md transition-colors duration-300 overflow-hidden ${className}`}>
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full flex items-center justify-between p-5 hover:bg-[hsl(var(--muted))/50] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-inset"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">
+              {Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}
+              {title}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-[hsl(var(--primary))] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`transition-all duration-300 ease-in-out origin-top ${isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className="p-5 pt-0">
+              {children}
+            </div>
+          </div>
+        </div>
+      );
+    };
 
-  const [params, setParams] = useState({
-    age: 42,
-    years: 50,
-    simulations: 200,
-    tfsa: 100000,
-    rrsp: 250000,
-    nonreg: 50000,
-    cash: 20000,
-    stockAlloc: 80,
-    withdrawalAmount: 16800,
-    withdrawalRate: 4.0,
-    inflation: 2.8,
-    flexibleSpending: false,
-    marketReturn: 8.0,
-    marketVariance: 12.0,
-    bondReturn: 2.5,
-    merFee: 0.25,
-    currentIncome: 0,
-    currentIncomeEnd: currentYear + 5,
-    otherIncome: 18000,
-    otherIncomeStart: 2048,
-  });
+    const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => (
+      <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
+        <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
+        <div className={`text-2xl font-bold tracking-tight ${highlight && !isGradient ? 'text-[hsl(var(--primary))] drop-shadow-[0_0_8px_hsl(var(--primary)/0.2)]' : 'text-[hsl(var(--foreground))]'}`}>
+          {value}
+        </div>
+        {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
+      </div>
+    );
 
-  const [results, setResults] = useState({
-    successRate: 0,
-    medianEnd: 0,
-    p10End: 0,
-    p90End: 0,
-    target100: 0,
-    medianPathData: [],
-    simulationDatasets: [],
-    yearlyAggregates: [],
-    earliestFailureIndex: -1,
-  });
+    const Slider = ({ value, min, max, onChange, label, displayValue }) => (
+      <div className="space-y-2 w-full">
+        {label && (
+          <div className="flex justify-between text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+            <span>{label}</span>
+            <span className="font-mono text-[hsl(var(--foreground))]">{displayValue || value}</span>
+          </div>
+        )}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(e) => onChange(parseInt(e.target.value))}
+          className="w-full h-1.5 appearance-none rounded-full bg-[hsl(var(--border))] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[hsl(var(--foreground))] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[hsl(var(--primary))] [&::-webkit-slider-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:shadow-[0_0_10px_hsl(var(--primary)/0.5)] [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-[hsl(var(--primary))] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[hsl(var(--foreground))] [&::-moz-range-thumb]:cursor-pointer hover:[&::-moz-range-thumb]:shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all"
+        />
+      </div>
+    );
 
-  useEffect(() => {
-    setIsClient(true);
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    let hasUrlParams = false;
-    const paramsFromUrl = {};
-    
-    for (const [key, value] of urlParams.entries()) {
-      if (key in params) {
-        paramsFromUrl[key] = parseFloat(value);
-        hasUrlParams = true;
-      }
-    }
+    function App() {
+      const currentYear = new Date().getFullYear();
 
-    if (hasUrlParams) {
-      setParams(p => ({ ...p, ...paramsFromUrl }));
-      return;
-    }
+      const [theme, setTheme] = useState('zinc');
+      const [isClient, setIsClient] = useState(false);
+      const chartRef = useRef(null);
+      const chartInstance = useRef(null);
+      const [shareText, setShareText] = useState('Share Link');
 
-    const stored = localStorage.getItem('fireCalcData');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setParams(p => ({ ...p, ...parsed.params }));
-        if (parsed.theme) {
-          setTheme(parsed.theme === 'slate' ? 'sage' : parsed.theme);
-        }
-      } catch (e) {
-        console.error("Failed to load settings", e);
-      }
-    } else {
-      const total = params.tfsa + params.rrsp + params.nonreg + params.cash;
-      setParams(p => ({ ...p, withdrawalAmount: total * (p.withdrawalRate / 100) }));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isClient) return;
-    localStorage.setItem('fireCalcData', JSON.stringify({ params, theme }));
-  }, [params, theme, isClient]);
-
-  useEffect(() => {
-    if (!isClient) return;
-    const styleId = 'dynamic-theme';
-    let styleTag = document.getElementById(styleId);
-    if (!styleTag) {
-      styleTag = document.createElement('style');
-      styleTag.id = styleId;
-      document.head.appendChild(styleTag);
-    }
-    styleTag.innerHTML = `:root { ${THEMES[theme] || THEMES['zinc']} }`;
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme, isClient]);
-
-  const handleNumChange = (field, val, min, max) => {
-    let num = parseFloat(val) || 0;
-    if (min !== undefined && num < min) num = min;
-    if (max !== undefined && num > max) num = max;
-    setParams(p => ({ ...p, [field]: num }));
-  };
-
-  const handleCurrencyChange = (field, num) => {
-    setParams(p => {
-      const newParams = { ...p, [field]: num };
-      const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
-      
-      if (field === 'withdrawalAmount') {
-        if (total > 0) newParams.withdrawalRate = parseFloat(((num / total) * 100).toFixed(4));
-      } else if (['tfsa', 'rrsp', 'nonreg', 'cash'].includes(field)) {
-        if (total > 0) newParams.withdrawalRate = parseFloat(((newParams.withdrawalAmount / total) * 100).toFixed(4));
-      }
-      return newParams;
-    });
-  };
-
-  const handleRateChange = (num) => {
-    setParams(p => {
-      const newParams = { ...p, withdrawalRate: num };
-      const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
-      newParams.withdrawalAmount = total * (num / 100);
-      return newParams;
-    });
-  };
-
-  const handleReRoll = () => {
-    baseSeed = Math.floor(Math.random() * 100000);
-    runSimulation();
-  };
-
-  const handleShare = () => {
-    const url = new URL(window.location.href);
-    Object.keys(params).forEach(key => {
-      url.searchParams.set(key, params[key]);
-    });
-    const dummy = document.createElement('input');
-    document.body.appendChild(dummy);
-    dummy.value = url.toString();
-    dummy.select();
-    document.execCommand('copy');
-    document.body.removeChild(dummy);
-    
-    setShareText('Copied!');
-    setTimeout(() => setShareText('Share Link'), 2000);
-  };
-
-  const handleReset = () => {
-    localStorage.removeItem('fireCalcData');
-    window.location.reload();
-  };
-
-  const runSimulation = () => {
-    const {
-      age, years, tfsa, rrsp, nonreg, cash, stockAlloc, withdrawalAmount,
-      inflation, flexibleSpending, marketReturn, marketVariance, bondReturn, merFee,
-      currentIncome, currentIncomeEnd, otherIncome, otherIncomeStart
-    } = params;
-
-    const totalPortfolio = tfsa + rrsp + nonreg + cash;
-    const infl = inflation / 100;
-    const mMean = marketReturn / 100;
-    const mVar = marketVariance / 100;
-    const bRet = bondReturn / 100;
-    const fee = merFee / 100;
-    const sPct = stockAlloc / 100;
-    const bPct = 1 - sPct;
-
-    const investedTotal = tfsa + rrsp + nonreg;
-    const grandTotal = investedTotal + cash;
-    const totalStock = investedTotal * sPct;
-    const totalBond = (investedTotal * bPct) + cash;
-    const wStock = grandTotal > 0 ? totalStock / grandTotal : 0;
-    const wBond = grandTotal > 0 ? totalBond / grandTotal : 0;
-
-    let blendedMean = (wStock * mMean) + (wBond * bRet) - fee;
-    const blendedStdDev = wStock * mVar;
-
-    const numSimulations = params.simulations;
-
-    let seedGen = baseSeed;
-    const marketReturnsMatrix = [];
-    for (let s = 0; s < numSimulations; s++) {
-      const runReturns = [];
-      for (let i = 1; i <= years; i++) {
-        let u = 0, v = 0;
-        while (u === 0) { let x = Math.sin(seedGen++) * 10000; u = x - Math.floor(x); }
-        while (v === 0) { let y = Math.sin(seedGen++) * 10000; v = y - Math.floor(y); }
-        const rnd = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-        runReturns.push(blendedMean + (blendedStdDev * rnd));
-      }
-      marketReturnsMatrix.push(runReturns);
-    }
-
-    let successes = 0;
-    let finalBalances = [];
-    let earliestFailureIndex = -1;
-    let minFailureStep = Infinity;
-    const simulationDatasets = [];
-    let yearlyAggregates = Array(years + 1).fill(null).map(() => ({
-      balances: [], withdrawals: [], incomes: [], growths: []
-    }));
-
-    for (let s = 0; s < numSimulations; s++) {
-      yearlyAggregates[0].balances.push(totalPortfolio);
-      let simBal = totalPortfolio;
-      let simWithdrawal = withdrawalAmount;
-      let dataPoints = [simBal];
-      let runFailedStep = Infinity;
-
-      for (let i = 1; i <= years; i++) {
-        const year = currentYear + i;
-        const randomReturn = marketReturnsMatrix[s][i - 1];
-        
-        let simIncome = 0;
-        if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
-        if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
-
-        let net = simIncome - simWithdrawal;
-        let investable = Math.max(0, simBal + net);
-        let growth = investable * randomReturn;
-        let end = investable + growth;
-
-        if (end <= 0) {
-          end = 0;
-          if (runFailedStep === Infinity) runFailedStep = i;
-        }
-
-        yearlyAggregates[i].balances.push(end);
-        yearlyAggregates[i].withdrawals.push(simWithdrawal);
-        yearlyAggregates[i].incomes.push(simIncome);
-        yearlyAggregates[i].growths.push(growth);
-
-        let nextWithdrawal = simWithdrawal;
-        if (flexibleSpending && randomReturn < 0) {
-          nextWithdrawal = simWithdrawal;
-        } else {
-          nextWithdrawal = simWithdrawal * (1 + infl);
-        }
-
-        simBal = end;
-        simWithdrawal = nextWithdrawal;
-        
-        if (dataPoints[dataPoints.length - 1] > 0) dataPoints.push(simBal);
-      }
-
-      if (runFailedStep === Infinity) successes++;
-      finalBalances.push(simBal);
-      
-      if (runFailedStep < minFailureStep) {
-        minFailureStep = runFailedStep;
-        earliestFailureIndex = s;
-      }
-
-      const isLight = theme === 'light';
-      simulationDatasets.push({
-        label: `Sim ${s}`,
-        data: dataPoints,
-        borderColor: isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)',
-        borderWidth: 1,
-        pointRadius: 0,
-        fill: false,
-        tension: 0.4,
-        order: 10
+      const [params, setParams] = useState({
+        age: 42,
+        years: 50,
+        simulations: 200,
+        tfsa: 100000,
+        rrsp: 250000,
+        nonreg: 50000,
+        cash: 20000,
+        stockAlloc: 80,
+        withdrawalAmount: 16800,
+        withdrawalRate: 4.0,
+        inflation: 2.8,
+        flexibleSpending: false,
+        marketReturn: 8.0,
+        marketVariance: 12.0,
+        bondReturn: 2.5,
+        merFee: 0.25,
+        currentIncome: 0,
+        currentIncomeEnd: currentYear + 5,
+        otherIncome: 18000,
+        otherIncomeStart: 2048,
       });
-    }
 
-    if (earliestFailureIndex !== -1) {
-      simulationDatasets[earliestFailureIndex].borderColor = 'rgba(244, 63, 94, 0.8)';
-      simulationDatasets[earliestFailureIndex].borderWidth = 2;
-      simulationDatasets[earliestFailureIndex].order = 2;
-    }
+      const [results, setResults] = useState({
+        successRate: 0,
+        medianEnd: 0,
+        p10End: 0,
+        p90End: 0,
+        target100: 0,
+        medianPathData: [],
+        simulationDatasets: [],
+        yearlyAggregates: [],
+        earliestFailureIndex: -1,
+      });
 
-    const medianVal = getMedian(finalBalances);
-    const sortedBalances = [...finalBalances].sort((a, b) => a - b);
-    const p10Val = sortedBalances[Math.floor(sortedBalances.length * 0.1)];
-    const p90Val = sortedBalances[Math.floor(sortedBalances.length * 0.9)];
-
-    const medianPathData = [];
-    for (let i = 0; i <= years; i++) {
-      medianPathData.push(getMedian(yearlyAggregates[i].balances));
-    }
-
-    let target100 = totalPortfolio;
-    if (successes < numSimulations) {
-      let low = totalPortfolio;
-      let high = 50000000; 
-      let bestFound = high;
-      
-      for (let step = 0; step < 40; step++) {
-        let mid = (low + high) / 2;
-        let allSuccess = true;
+      useEffect(() => {
+        setIsClient(true);
         
+        const urlParams = new URLSearchParams(window.location.search);
+        let hasUrlParams = false;
+        const paramsFromUrl = {};
+        
+        for (const [key, value] of urlParams.entries()) {
+          if (key in params) {
+            paramsFromUrl[key] = parseFloat(value);
+            hasUrlParams = true;
+          }
+        }
+
+        if (hasUrlParams) {
+          setParams(p => ({ ...p, ...paramsFromUrl }));
+          return;
+        }
+
+        const stored = localStorage.getItem('fireCalcData');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            setParams(p => ({ ...p, ...parsed.params }));
+            if (parsed.theme) {
+              setTheme(parsed.theme === 'slate' ? 'sage' : parsed.theme);
+            }
+          } catch (e) {
+            console.error("Failed to load settings", e);
+          }
+        } else {
+          const total = params.tfsa + params.rrsp + params.nonreg + params.cash;
+          setParams(p => ({ ...p, withdrawalAmount: total * (p.withdrawalRate / 100) }));
+        }
+      }, []);
+
+      useEffect(() => {
+        if (!isClient) return;
+        localStorage.setItem('fireCalcData', JSON.stringify({ params, theme }));
+      }, [params, theme, isClient]);
+
+      useEffect(() => {
+        if (!isClient) return;
+        const styleId = 'dynamic-theme';
+        let styleTag = document.getElementById(styleId);
+        if (!styleTag) {
+          styleTag = document.createElement('style');
+          styleTag.id = styleId;
+          document.head.appendChild(styleTag);
+        }
+        styleTag.innerHTML = `:root { ${THEMES[theme] || THEMES['zinc']} }`;
+        document.documentElement.setAttribute('data-theme', theme);
+      }, [theme, isClient]);
+
+      const handleNumChange = (field, val, min, max) => {
+        let num = parseFloat(val) || 0;
+        if (min !== undefined && num < min) num = min;
+        if (max !== undefined && num > max) num = max;
+        setParams(p => ({ ...p, [field]: num }));
+      };
+
+      const handleCurrencyChange = (field, num) => {
+        setParams(p => {
+          const newParams = { ...p, [field]: num };
+          const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
+          
+          if (field === 'withdrawalAmount') {
+            if (total > 0) newParams.withdrawalRate = parseFloat(((num / total) * 100).toFixed(4));
+          } else if (['tfsa', 'rrsp', 'nonreg', 'cash'].includes(field)) {
+            if (total > 0) newParams.withdrawalRate = parseFloat(((newParams.withdrawalAmount / total) * 100).toFixed(4));
+          }
+          return newParams;
+        });
+      };
+
+      const handleRateChange = (num) => {
+        setParams(p => {
+          const newParams = { ...p, withdrawalRate: num };
+          const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
+          newParams.withdrawalAmount = total * (num / 100);
+          return newParams;
+        });
+      };
+
+      const handleReRoll = () => {
+        baseSeed = Math.floor(Math.random() * 100000);
+        runSimulation();
+      };
+
+      const handleShare = () => {
+        const url = new URL(window.location.href);
+        Object.keys(params).forEach(key => {
+          url.searchParams.set(key, params[key]);
+        });
+        const dummy = document.createElement('input');
+        document.body.appendChild(dummy);
+        dummy.value = url.toString();
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        
+        setShareText('Copied!');
+        setTimeout(() => setShareText('Share Link'), 2000);
+      };
+
+      const handleReset = () => {
+        localStorage.removeItem('fireCalcData');
+        window.location.reload();
+      };
+
+      const runSimulation = () => {
+        const {
+          age, years, tfsa, rrsp, nonreg, cash, stockAlloc, withdrawalAmount,
+          inflation, flexibleSpending, marketReturn, marketVariance, bondReturn, merFee,
+          currentIncome, currentIncomeEnd, otherIncome, otherIncomeStart
+        } = params;
+
+        const totalPortfolio = tfsa + rrsp + nonreg + cash;
+        const infl = inflation / 100;
+        const mMean = marketReturn / 100;
+        const mVar = marketVariance / 100;
+        const bRet = bondReturn / 100;
+        const fee = merFee / 100;
+        const sPct = stockAlloc / 100;
+        const bPct = 1 - sPct;
+
+        const investedTotal = tfsa + rrsp + nonreg;
+        const grandTotal = investedTotal + cash;
+        const totalStock = investedTotal * sPct;
+        const totalBond = (investedTotal * bPct) + cash;
+        const wStock = grandTotal > 0 ? totalStock / grandTotal : 0;
+        const wBond = grandTotal > 0 ? totalBond / grandTotal : 0;
+
+        let blendedMean = (wStock * mMean) + (wBond * bRet) - fee;
+        const blendedStdDev = wStock * mVar;
+
+        const numSimulations = params.simulations;
+
+        let seedGen = baseSeed;
+        const marketReturnsMatrix = [];
         for (let s = 0; s < numSimulations; s++) {
-          let simBal = mid;
+          const runReturns = [];
+          for (let i = 1; i <= years; i++) {
+            let u = 0, v = 0;
+            while (u === 0) { let x = Math.sin(seedGen++) * 10000; u = x - Math.floor(x); }
+            while (v === 0) { let y = Math.sin(seedGen++) * 10000; v = y - Math.floor(y); }
+            const rnd = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            runReturns.push(blendedMean + (blendedStdDev * rnd));
+          }
+          marketReturnsMatrix.push(runReturns);
+        }
+
+        let successes = 0;
+        let finalBalances = [];
+        let earliestFailureIndex = -1;
+        let minFailureStep = Infinity;
+        const simulationDatasets = [];
+        let yearlyAggregates = Array(years + 1).fill(null).map(() => ({
+          balances: [], withdrawals: [], incomes: [], growths: []
+        }));
+
+        for (let s = 0; s < numSimulations; s++) {
+          yearlyAggregates[0].balances.push(totalPortfolio);
+          let simBal = totalPortfolio;
           let simWithdrawal = withdrawalAmount;
-          let runFailed = false;
+          let dataPoints = [simBal];
+          let runFailedStep = Infinity;
 
           for (let i = 1; i <= years; i++) {
             const year = currentYear + i;
@@ -562,436 +564,530 @@ export default function App() {
             let end = investable + growth;
 
             if (end <= 0) {
-              runFailed = true;
-              break;
+              end = 0;
+              if (runFailedStep === Infinity) runFailedStep = i;
             }
 
+            yearlyAggregates[i].balances.push(end);
+            yearlyAggregates[i].withdrawals.push(simWithdrawal);
+            yearlyAggregates[i].incomes.push(simIncome);
+            yearlyAggregates[i].growths.push(growth);
+
+            let nextWithdrawal = simWithdrawal;
             if (flexibleSpending && randomReturn < 0) {
-              simWithdrawal = simWithdrawal;
+              nextWithdrawal = simWithdrawal;
             } else {
-              simWithdrawal = simWithdrawal * (1 + infl);
+              nextWithdrawal = simWithdrawal * (1 + infl);
             }
-            simBal = end;
-          }
-          
-          if (runFailed) {
-            allSuccess = false;
-            break;
-          }
-        }
-        
-        if (allSuccess) {
-          bestFound = mid;
-          high = mid;
-        } else {
-          low = mid;
-        }
-      }
-      target100 = bestFound;
-    } else {
-      let low = 0;
-      let high = totalPortfolio;
-      let bestFound = high;
-      
-      for (let step = 0; step < 40; step++) {
-        let mid = (low + high) / 2;
-        let allSuccess = true;
-        
-        for (let s = 0; s < numSimulations; s++) {
-          let simBal = mid;
-          let simWithdrawal = withdrawalAmount;
-          let runFailed = false;
 
-          for (let i = 1; i <= years; i++) {
-            const year = currentYear + i;
-            const randomReturn = marketReturnsMatrix[s][i - 1];
+            simBal = end;
+            simWithdrawal = nextWithdrawal;
             
-            let simIncome = 0;
-            if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
-            if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
-
-            let net = simIncome - simWithdrawal;
-            let investable = Math.max(0, simBal + net);
-            let growth = investable * randomReturn;
-            let end = investable + growth;
-
-            if (end <= 0) {
-              runFailed = true;
-              break;
-            }
-
-            if (flexibleSpending && randomReturn < 0) {
-              simWithdrawal = simWithdrawal;
-            } else {
-              simWithdrawal = simWithdrawal * (1 + infl);
-            }
-            simBal = end;
+            if (dataPoints[dataPoints.length - 1] > 0) dataPoints.push(simBal);
           }
+
+          if (runFailedStep === Infinity) successes++;
+          finalBalances.push(simBal);
           
-          if (runFailed) {
-            allSuccess = false;
-            break;
+          if (runFailedStep < minFailureStep) {
+            minFailureStep = runFailedStep;
+            earliestFailureIndex = s;
           }
-        }
-        
-        if (allSuccess) {
-          bestFound = mid;
-          high = mid;
-        } else {
-          low = mid;
-        }
-      }
-      target100 = bestFound;
-    }
 
-    setResults({
-      successRate: Math.round((successes / numSimulations) * 100),
-      medianEnd: medianVal,
-      p10End: p10Val,
-      p90End: p90Val,
-      target100: target100,
-      medianPathData,
-      simulationDatasets,
-      yearlyAggregates,
-      earliestFailureIndex,
-    });
-  };
-
-  useEffect(() => {
-    if (isClient) runSimulation();
-  }, [params, isClient]);
-
-  useEffect(() => {
-    if (!isClient || !chartRef.current || results.simulationDatasets.length === 0) return;
-
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-      chartInstance.current = null;
-    }
-
-    const ctx = chartRef.current.getContext('2d');
-    const labels = Array.from({ length: params.years + 1 }, (_, i) => currentYear + i);
-    const yMax = Math.max(results.p90End, (params.tfsa + params.rrsp + params.nonreg + params.cash)) * 1.25;
-
-    const style = getComputedStyle(document.documentElement);
-    const getVar = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
-    
-    const gridColorRaw = getVar('--chart-grid', 'rgba(255,255,255,0.1)');
-    const textColorRaw = getVar('--chart-text', '#94a3b8');
-    
-    const getColor = (val) => {
-        if (val && !val.startsWith('#') && !val.startsWith('hsl') && !val.startsWith('rgba')) {
-            return `hsl(${val})`;
-        }
-        return val;
-    };
-
-    const gridColor = getColor(gridColorRaw);
-    const textColor = getColor(textColorRaw);
-    const primaryColor = getColor(getVar('--primary', '75 100% 50%'));
-    const bgCard = getColor(getVar('--card', '240 10% 9%'));
-    const borderCard = getColor(getVar('--border', '240 4% 16%'));
-    const foregroundColor = getColor(getVar('--foreground', '#fff'));
-    const mutedForegroundColor = getColor(getVar('--muted-foreground', '#a1a1aa'));
-
-    const isLight = document.documentElement.getAttribute('data-theme') === 'light' || theme === 'light';
-    const defaultLineColor = isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)';
-    const failLineColor = 'rgba(244, 63, 94, 0.8)';
-
-    const styledDatasets = results.simulationDatasets.map((ds, idx) => ({
-      ...ds,
-      borderColor: idx === results.earliestFailureIndex ? failLineColor : defaultLineColor,
-      borderWidth: idx === results.earliestFailureIndex ? 2 : 1,
-      order: idx === results.earliestFailureIndex ? 2 : 10
-    }));
-
-    chartInstance.current = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Median Market Path',
-          data: results.medianPathData,
-          borderColor: primaryColor,
-          borderWidth: 3,
-          pointRadius: 0,
-          tension: 0.4,
-          order: 1
-        }, ...styledDatasets]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            mode: 'index',
-            intersect: false,
-            backgroundColor: bgCard,
-            titleColor: foregroundColor,
-            bodyColor: mutedForegroundColor,
-            borderColor: borderCard,
+          const isLight = theme === 'light';
+          simulationDatasets.push({
+            label: `Sim ${s}`,
+            data: dataPoints,
+            borderColor: isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)',
             borderWidth: 1,
-            padding: 12,
-            callbacks: {
-              title: (items) => `${items[0].label} (Age: ${params.age + (parseInt(items[0].label) - currentYear)})`,
-              label: (context) => {
-                if (context.dataset.label === 'Median Market Path') return `Median: ${formatCurrency(context.raw)}`;
-                if (context.dataset.label === 'Earliest Failure') return `Early Fail: ${formatCurrency(context.raw)}`;
-                return '';
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: yMax,
-            grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              callback: (value, index, values) => {
-                if (index === values.length - 1) return null;
-                if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-                if (value >= 1e6) return `$${(value / 1e6).toFixed(0)}M`;
-                if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}k`;
-                return `$${value}`;
-              }
-            }
-          },
-          x: {
-            grid: { color: gridColor },
-            ticks: { color: textColor }
-          }
-        },
-        interaction: { mode: 'nearest', axis: 'x', intersect: false }
-      }
-    });
+            pointRadius: 0,
+            fill: false,
+            tension: 0.4,
+            order: 10
+          });
+        }
 
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-        chartInstance.current = null;
-      }
-    };
-  }, [results, theme, params.years, params.age, currentYear, isClient]);
+        if (earliestFailureIndex !== -1) {
+          simulationDatasets[earliestFailureIndex].borderColor = 'rgba(244, 63, 94, 0.8)';
+          simulationDatasets[earliestFailureIndex].borderWidth = 2;
+          simulationDatasets[earliestFailureIndex].order = 2;
+        }
 
-  if (!isClient) return null;
+        const medianVal = getMedian(finalBalances);
+        const sortedBalances = [...finalBalances].sort((a, b) => a - b);
+        const p10Val = sortedBalances[Math.floor(sortedBalances.length * 0.1)];
+        const p90Val = sortedBalances[Math.floor(sortedBalances.length * 0.9)];
 
-  const totalPortfolio = params.tfsa + params.rrsp + params.nonreg + params.cash;
+        const medianPathData = [];
+        for (let i = 0; i <= years; i++) {
+          medianPathData.push(getMedian(yearlyAggregates[i].balances));
+        }
 
-  return (
-    <div className="flex min-h-screen lg:h-screen w-full flex-col lg:overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans">
-      
-      <header className="sticky top-0 lg:static flex h-16 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-6 bg-[hsl(var(--card))]/80 backdrop-blur z-20">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]">
-            <Leaf className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight">Corwin's FIRE Calc (Canada)</h1>
-            <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
-          <div className="hidden md:flex items-center gap-2">
-            <label className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
-            <select 
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-              className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm transition-colors hover:border-[hsl(var(--primary))/50]"
-            >
-              <option value="zinc">Zinc (Dark)</option>
-              <option value="sage">Sage (Dark)</option>
-              <option value="light">Light</option>
-            </select>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 flex-col lg:flex-row lg:overflow-hidden">
-        
-        <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] lg:overflow-y-auto custom-scrollbar p-6 space-y-6">
+        let target100 = totalPortfolio;
+        if (successes < numSimulations) {
+          let low = totalPortfolio;
+          let high = 50000000; 
+          let bestFound = high;
           
-          <CollapsibleCard title="Profile" icon={User}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormInput label="Current Age" type="number" value={params.age} min={1} max={100} onChange={(val) => handleNumChange('age', val, 1, 100)} />
-              <FormInput label="Years to Project" type="number" value={params.years} min={1} max={100} onChange={(val) => handleNumChange('years', val, 1, 100)} />
-              <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(val) => handleNumChange('simulations', val, 100, 1000)} tooltip="Higher values improve accuracy but decrease performance." />
-            </div>
-          </CollapsibleCard>
-
-          <CollapsibleCard title="Assets (CAD)" icon={Coins}>
-            <div className="space-y-4">
-              <CurrencyInput label="TFSA ($)" value={params.tfsa} tooltip="Tax-Free Savings Account" 
-                onChange={(val) => handleCurrencyChange('tfsa', val)} max={5000000} />
-              <CurrencyInput label="RRSP / LIRA ($)" value={params.rrsp} tooltip="Tax-deferred retirement plan" 
-                onChange={(val) => handleCurrencyChange('rrsp', val)} max={10000000} />
-              <CurrencyInput label="Non-Registered ($)" value={params.nonreg} tooltip="Taxable investments" 
-                onChange={(val) => handleCurrencyChange('nonreg', val)} max={10000000} />
-              <div className="h-px w-full bg-[hsl(var(--border))] my-4" />
-              <CurrencyInput label="Cash / Fixed ($)" value={params.cash} tooltip="Excluded from equity mix" 
-                onChange={(val) => handleCurrencyChange('cash', val)} max={10000000} />
-              
-              <div className="pt-2">
-                <Slider label="Equity Mix" value={params.stockAlloc} min={0} max={100} displayValue={`${params.stockAlloc}% Stocks / ${100 - params.stockAlloc}% Bonds`} onChange={(val) => handleNumChange('stockAlloc', val)} />
-              </div>
-            </div>
-          </CollapsibleCard>
-
-          <CollapsibleCard title="Assumptions" icon={Sliders}>
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4 relative">
-                <CurrencyInput label="Annual Spend ($)" value={params.withdrawalAmount} tooltip="Master Value. Target spending in today's dollars."
-                  onChange={(val) => handleCurrencyChange('withdrawalAmount', val, totalPortfolio * 0.5)} />
-                <FormInput label="Rate (%)" type="number" step="0.01" value={params.withdrawalRate} tooltip="Calculated initial withdrawal rate."
-                  onChange={(val) => handleRateChange(val)} min={0} max={50} />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 items-end">
-                <FormInput label="Inflation (%)" type="number" step="0.1" value={params.inflation} onChange={(val) => handleNumChange('inflation', val, 0, 200)} />
-                <div className="flex items-center pb-2">
-                  <label className="flex items-center cursor-pointer">
-                    <input type="checkbox" checked={params.flexibleSpending} onChange={(e) => setParams({ ...params, flexibleSpending: e.target.checked })} className="sr-only peer" />
-                    <div className="relative w-9 h-5 bg-[hsl(var(--muted))] rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[hsl(var(--primary))] peer-checked:shadow-[0_0_10px_hsl(var(--primary)/0.4)]"></div>
-                    <span className="ms-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">Flex Spend</span>
-                  </label>
-                  <Tooltip text="Skip inflation raise in down years" />
-                </div>
-              </div>
-
-              <div className="h-px w-full bg-[hsl(var(--border))]" />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput label="Stock Return (%)" type="number" step="0.1" value={params.marketReturn} onChange={(val) => handleNumChange('marketReturn', val, 0, 100)} />
-                <FormInput label="Variance (%)" type="number" step="0.1" value={params.marketVariance} onChange={(val) => handleNumChange('marketVariance', val, 0, 100)} tooltip="Std Dev (12-13% typical)" />
-                <FormInput label="Fixed Income (%)" type="number" step="0.1" value={params.bondReturn} onChange={(val) => handleNumChange('bondReturn', val, 0, 100)} tooltip="Return for Bonds/Cash" />
-                <FormInput label="MER Fee (%)" type="number" step="0.01" value={params.merFee} onChange={(val) => handleNumChange('merFee', val, 0, 50)} tooltip="Annual expense ratio" />
-              </div>
-            </div>
-          </CollapsibleCard>
-
-          <CollapsibleCard title="Future Income" icon={Banknote}>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-                <div className="sm:col-span-3">
-                  <CurrencyInput label="Side Income ($)" value={params.currentIncome} tooltip="Income from part-time work or side hustles"
-                    onChange={(val) => handleCurrencyChange('currentIncome', val)} max={100000000} />
-                </div>
-                <div className="sm:col-span-2 pb-1">
-                  <Slider label="Until" value={params.currentIncomeEnd} min={currentYear} max={currentYear + params.years} onChange={(val) => handleNumChange('currentIncomeEnd', val)} />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-                <div className="sm:col-span-3">
-                  <CurrencyInput label="CPP/OAS ($)" value={params.otherIncome} tooltip="Government benefits in today's dollars"
-                    onChange={(val) => handleCurrencyChange('otherIncome', val)} max={1000000} />
-                </div>
-                <div className="sm:col-span-2 pb-1">
-                  <Slider label="Starts" value={params.otherIncomeStart} min={currentYear} max={currentYear + params.years} onChange={(val) => handleNumChange('otherIncomeStart', val)} />
-                </div>
-              </div>
-            </div>
-          </CollapsibleCard>
-
-          <div className="flex flex-col gap-3 pt-2">
-            <button onClick={handleReRoll} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--primary-gradient)] text-[hsl(var(--primary-foreground))] font-bold transition-opacity hover:opacity-90 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.6)] border-0">
-              <Dices className="h-4 w-4" /> Recalculate (new seed)
-            </button>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={handleShare} className="h-9 w-full flex items-center justify-center gap-2 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">
-                <Share2 className="h-3 w-3" /> {shareText}
-              </button>
-              <button onClick={handleReset} className="h-9 w-full rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">
-                Reset Defaults
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        <main className="flex-1 bg-[hsl(var(--background))] custom-scrollbar p-4 lg:p-8 lg:overflow-y-auto relative">
-          <div className="mx-auto max-w-6xl space-y-6">
+          for (let step = 0; step < 40; step++) {
+            let mid = (low + high) / 2;
+            let allSuccess = true;
             
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-              <StatCard title="Total Portfolio" value={formatCurrency(totalPortfolio)} subtitle="Current value" isGradient={true} highlight={true} />
-              <StatCard title="Required for 100%" value={formatCurrency(results.target100)} subtitle="Portfolio needed today" />
-              <StatCard title="Success Rate" value={`${results.successRate}%`} subtitle="Simulations > $0" highlight={results.successRate > 90} />
-              <StatCard title="Median Balance" value={formatCurrency(results.medianEnd)} subtitle="50th Percentile scenario" />
-              <StatCard title="Worst Decile (10th)" value={formatCurrency(results.p10End)} subtitle="Unlucky scenario" />
-              <StatCard title="Best Decile (90th)" value={formatCurrency(results.p90End)} subtitle="Lucky scenario" />
+            for (let s = 0; s < numSimulations; s++) {
+              let simBal = mid;
+              let simWithdrawal = withdrawalAmount;
+              let runFailed = false;
+
+              for (let i = 1; i <= years; i++) {
+                const year = currentYear + i;
+                const randomReturn = marketReturnsMatrix[s][i - 1];
+                
+                let simIncome = 0;
+                if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
+                if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
+
+                let net = simIncome - simWithdrawal;
+                let investable = Math.max(0, simBal + net);
+                let growth = investable * randomReturn;
+                let end = investable + growth;
+
+                if (end <= 0) {
+                  runFailed = true;
+                  break;
+                }
+
+                if (flexibleSpending && randomReturn < 0) {
+                  simWithdrawal = simWithdrawal;
+                } else {
+                  simWithdrawal = simWithdrawal * (1 + infl);
+                }
+                simBal = end;
+              }
+              
+              if (runFailed) {
+                allSuccess = false;
+                break;
+              }
+            }
+            
+            if (allSuccess) {
+              bestFound = mid;
+              high = mid;
+            } else {
+              low = mid;
+            }
+          }
+          target100 = bestFound;
+        } else {
+          let low = 0;
+          let high = totalPortfolio;
+          let bestFound = high;
+          
+          for (let step = 0; step < 40; step++) {
+            let mid = (low + high) / 2;
+            let allSuccess = true;
+            
+            for (let s = 0; s < numSimulations; s++) {
+              let simBal = mid;
+              let simWithdrawal = withdrawalAmount;
+              let runFailed = false;
+
+              for (let i = 1; i <= years; i++) {
+                const year = currentYear + i;
+                const randomReturn = marketReturnsMatrix[s][i - 1];
+                
+                let simIncome = 0;
+                if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
+                if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
+
+                let net = simIncome - simWithdrawal;
+                let investable = Math.max(0, simBal + net);
+                let growth = investable * randomReturn;
+                let end = investable + growth;
+
+                if (end <= 0) {
+                  runFailed = true;
+                  break;
+                }
+
+                if (flexibleSpending && randomReturn < 0) {
+                  simWithdrawal = simWithdrawal;
+                } else {
+                  simWithdrawal = simWithdrawal * (1 + infl);
+                }
+                simBal = end;
+              }
+              
+              if (runFailed) {
+                allSuccess = false;
+                break;
+              }
+            }
+            
+            if (allSuccess) {
+              bestFound = mid;
+              high = mid;
+            } else {
+              low = mid;
+            }
+          }
+          target100 = bestFound;
+        }
+
+        setResults({
+          successRate: Math.round((successes / numSimulations) * 100),
+          medianEnd: medianVal,
+          p10End: p10Val,
+          p90End: p90Val,
+          target100: target100,
+          medianPathData,
+          simulationDatasets,
+          yearlyAggregates,
+          earliestFailureIndex,
+        });
+      };
+
+      useEffect(() => {
+        if (isClient) runSimulation();
+      }, [params, isClient]);
+
+      useEffect(() => {
+        if (!isClient || !chartRef.current || results.simulationDatasets.length === 0) return;
+
+        if (chartInstance.current) {
+          chartInstance.current.destroy();
+          chartInstance.current = null;
+        }
+
+        const ctx = chartRef.current.getContext('2d');
+        const labels = Array.from({ length: params.years + 1 }, (_, i) => currentYear + i);
+        const yMax = Math.max(results.p90End, (params.tfsa + params.rrsp + params.nonreg + params.cash)) * 1.25;
+
+        const style = getComputedStyle(document.documentElement);
+        const getVar = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+        
+        const gridColorRaw = getVar('--chart-grid', 'rgba(255,255,255,0.1)');
+        const textColorRaw = getVar('--chart-text', '#94a3b8');
+        
+        const getColor = (val) => {
+            if (val && !val.startsWith('#') && !val.startsWith('hsl') && !val.startsWith('rgba')) {
+                return `hsl(${val})`;
+            }
+            return val;
+        };
+
+        const gridColor = getColor(gridColorRaw);
+        const textColor = getColor(textColorRaw);
+        const primaryColor = getColor(getVar('--primary', '75 100% 50%'));
+        const bgCard = getColor(getVar('--card', '240 10% 9%'));
+        const borderCard = getColor(getVar('--border', '240 4% 16%'));
+        const foregroundColor = getColor(getVar('--foreground', '#fff'));
+        const mutedForegroundColor = getColor(getVar('--muted-foreground', '#a1a1aa'));
+
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light' || theme === 'light';
+        const defaultLineColor = isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+        const failLineColor = 'rgba(244, 63, 94, 0.8)';
+
+        const styledDatasets = results.simulationDatasets.map((ds, idx) => ({
+          ...ds,
+          borderColor: idx === results.earliestFailureIndex ? failLineColor : defaultLineColor,
+          borderWidth: idx === results.earliestFailureIndex ? 2 : 1,
+          order: idx === results.earliestFailureIndex ? 2 : 10
+        }));
+
+        chartInstance.current = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Median Market Path',
+              data: results.medianPathData,
+              borderColor: primaryColor,
+              borderWidth: 3,
+              pointRadius: 0,
+              tension: 0.4,
+              order: 1
+            }, ...styledDatasets]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: bgCard,
+                titleColor: foregroundColor,
+                bodyColor: mutedForegroundColor,
+                borderColor: borderCard,
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                  title: (items) => `${items[0].label} (Age: ${params.age + (parseInt(items[0].label) - currentYear)})`,
+                  label: (context) => {
+                    if (context.dataset.label === 'Median Market Path') return `Median: ${formatCurrency(context.raw)}`;
+                    if (context.dataset.label === 'Earliest Failure') return `Early Fail: ${formatCurrency(context.raw)}`;
+                    return '';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: yMax,
+                grid: { color: gridColor },
+                ticks: {
+                  color: textColor,
+                  callback: (value, index, values) => {
+                    if (index === values.length - 1) return null;
+                    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+                    if (value >= 1e6) return `$${(value / 1e6).toFixed(0)}M`;
+                    if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}k`;
+                    return `$${value}`;
+                  }
+                }
+              },
+              x: {
+                grid: { color: gridColor },
+                ticks: { color: textColor }
+              }
+            },
+            interaction: { mode: 'nearest', axis: 'x', intersect: false }
+          }
+        });
+
+        return () => {
+          if (chartInstance.current) {
+            chartInstance.current.destroy();
+            chartInstance.current = null;
+          }
+        };
+      }, [results, theme, params.years, params.age, currentYear, isClient]);
+
+      if (!isClient) return null;
+
+      const totalPortfolio = params.tfsa + params.rrsp + params.nonreg + params.cash;
+
+      return (
+        <div className="flex min-h-screen lg:h-screen w-full flex-col lg:overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans">
+          
+          <header className="sticky top-0 lg:static flex h-16 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-6 bg-[hsl(var(--card))]/80 backdrop-blur z-20">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]">
+                <Leaf className="h-4 w-4 text-emerald-500" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold tracking-tight">Corwin's FIRE Calc (Canada)</h1>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p>
+              </div>
             </div>
+            <div className="flex items-center gap-6">
+              <div className="hidden md:flex items-center gap-2">
+                <label className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
+                <select 
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                  className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm transition-colors hover:border-[hsl(var(--primary))/50]"
+                >
+                  <option value="zinc">Zinc (Dark)</option>
+                  <option value="sage">Sage (Dark)</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+            </div>
+          </header>
 
-            <Card>
-              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="font-bold text-[hsl(var(--foreground))] text-lg tracking-tight">Portfolio Projection</h3>
-                  <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">{params.simulations} Monte Carlo iterations based on applied volatility</p>
+          <div className="flex flex-1 flex-col lg:flex-row lg:overflow-hidden">
+            
+            <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] lg:overflow-y-auto custom-scrollbar p-6 space-y-6">
+              
+              <CollapsibleCard title="Profile" icon={User}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormInput label="Current Age" type="number" value={params.age} min={1} max={100} onChange={(val) => handleNumChange('age', val, 1, 100)} />
+                  <FormInput label="Years to Project" type="number" value={params.years} min={1} max={100} onChange={(val) => handleNumChange('years', val, 1, 100)} />
+                  <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(val) => handleNumChange('simulations', val, 100, 1000)} tooltip="Higher values improve accuracy but decrease performance." />
                 </div>
-              </div>
-              <div className="h-[400px] w-full relative">
-                <canvas ref={chartRef}></canvas>
-              </div>
-            </Card>
+              </CollapsibleCard>
 
-            <Card className="flex flex-col h-[500px] overflow-hidden p-0 border border-[hsl(var(--border))]">
-              <div className="p-5 border-b border-[hsl(var(--border))] flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-[hsl(var(--card))]">
-                <div>
-                  <h3 className="font-bold text-[hsl(var(--foreground))] text-lg tracking-tight">Detailed Projection</h3>
-                  <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">Median scenario year-over-year breakdown.</p>
+              <CollapsibleCard title="Assets (CAD)" icon={Coins}>
+                <div className="space-y-4">
+                  <CurrencyInput label="TFSA ($)" value={params.tfsa} tooltip="Tax-Free Savings Account" 
+                    onChange={(val) => handleCurrencyChange('tfsa', val)} max={5000000} />
+                  <CurrencyInput label="RRSP / LIRA ($)" value={params.rrsp} tooltip="Tax-deferred retirement plan" 
+                    onChange={(val) => handleCurrencyChange('rrsp', val)} max={10000000} />
+                  <CurrencyInput label="Non-Registered ($)" value={params.nonreg} tooltip="Taxable investments" 
+                    onChange={(val) => handleCurrencyChange('nonreg', val)} max={10000000} />
+                  <div className="h-px w-full bg-[hsl(var(--border))] my-4" />
+                  <CurrencyInput label="Cash / Fixed ($)" value={params.cash} tooltip="Excluded from equity mix" 
+                    onChange={(val) => handleCurrencyChange('cash', val)} max={10000000} />
+                  
+                  <div className="pt-2">
+                    <Slider label="Equity Mix" value={params.stockAlloc} min={0} max={100} displayValue={`${params.stockAlloc}% Stocks / ${100 - params.stockAlloc}% Bonds`} onChange={(val) => handleNumChange('stockAlloc', val)} />
+                  </div>
                 </div>
-                <div className="rounded-lg border border-[hsl(var(--primary))/30] bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider w-fit">
-                  NOMINAL CAD
+              </CollapsibleCard>
+
+              <CollapsibleCard title="Assumptions" icon={Sliders}>
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4 relative">
+                    <CurrencyInput label="Annual Spend ($)" value={params.withdrawalAmount} tooltip="Master Value. Target spending in today's dollars."
+                      onChange={(val) => handleCurrencyChange('withdrawalAmount', val, totalPortfolio * 0.5)} />
+                    <FormInput label="Rate (%)" type="number" step="0.01" value={params.withdrawalRate} tooltip="Calculated initial withdrawal rate."
+                      onChange={(val) => handleRateChange(val)} min={0} max={50} />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 items-end">
+                    <FormInput label="Inflation (%)" type="number" step="0.1" value={params.inflation} onChange={(val) => handleNumChange('inflation', val, 0, 200)} />
+                    <div className="flex items-center pb-2">
+                      <label className="flex items-center cursor-pointer">
+                        <input type="checkbox" checked={params.flexibleSpending} onChange={(e) => setParams({ ...params, flexibleSpending: e.target.checked })} className="sr-only peer" />
+                        <div className="relative w-9 h-5 bg-[hsl(var(--muted))] rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[hsl(var(--primary))] peer-checked:shadow-[0_0_10px_hsl(var(--primary)/0.4)]"></div>
+                        <span className="ms-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">Flex Spend</span>
+                      </label>
+                      <Tooltip text="Skip inflation raise in down years" />
+                    </div>
+                  </div>
+
+                  <div className="h-px w-full bg-[hsl(var(--border))]" />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormInput label="Stock Return (%)" type="number" step="0.1" value={params.marketReturn} onChange={(val) => handleNumChange('marketReturn', val, 0, 100)} />
+                    <FormInput label="Variance (%)" type="number" step="0.1" value={params.marketVariance} onChange={(val) => handleNumChange('marketVariance', val, 0, 100)} tooltip="Std Dev (12-13% typical)" />
+                    <FormInput label="Fixed Income (%)" type="number" step="0.1" value={params.bondReturn} onChange={(val) => handleNumChange('bondReturn', val, 0, 100)} tooltip="Return for Bonds/Cash" />
+                    <FormInput label="MER Fee (%)" type="number" step="0.01" value={params.merFee} onChange={(val) => handleNumChange('merFee', val, 0, 50)} tooltip="Annual expense ratio" />
+                  </div>
+                </div>
+              </CollapsibleCard>
+
+              <CollapsibleCard title="Future Income" icon={Banknote}>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
+                    <div className="sm:col-span-3">
+                      <CurrencyInput label="Side Income ($)" value={params.currentIncome} tooltip="Income from part-time work or side hustles"
+                        onChange={(val) => handleCurrencyChange('currentIncome', val)} max={100000000} />
+                    </div>
+                    <div className="sm:col-span-2 pb-1">
+                      <Slider label="Until" value={params.currentIncomeEnd} min={currentYear} max={currentYear + params.years} onChange={(val) => handleNumChange('currentIncomeEnd', val)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
+                    <div className="sm:col-span-3">
+                      <CurrencyInput label="CPP/OAS ($)" value={params.otherIncome} tooltip="Government benefits in today's dollars"
+                        onChange={(val) => handleCurrencyChange('otherIncome', val)} max={1000000} />
+                    </div>
+                    <div className="sm:col-span-2 pb-1">
+                      <Slider label="Starts" value={params.otherIncomeStart} min={currentYear} max={currentYear + params.years} onChange={(val) => handleNumChange('otherIncomeStart', val)} />
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleCard>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <button onClick={handleReRoll} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--primary-gradient)] text-[hsl(var(--primary-foreground))] font-bold transition-opacity hover:opacity-90 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.6)] border-0">
+                  <Dices className="h-4 w-4" /> Recalculate (new seed)
+                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={handleShare} className="h-9 w-full flex items-center justify-center gap-2 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">
+                    <Share2 className="h-3 w-3" /> {shareText}
+                  </button>
+                  <button onClick={handleReset} className="h-9 w-full rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">
+                    Reset Defaults
+                  </button>
                 </div>
               </div>
-              <div className="flex-1 overflow-auto custom-scrollbar">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="sticky top-0 bg-[hsl(var(--background))] shadow-sm z-10">
-                    <tr className="text-xs text-[hsl(var(--muted-foreground))] font-bold uppercase tracking-wider">
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))] border-t-2 border-t-transparent hover:border-t-[hsl(var(--primary))] transition-colors">Year</th>
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))]">Age</th>
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Start Bal</th>
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Withdraw</th>
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Income</th>
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Growth</th>
-                      <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right text-[hsl(var(--primary))]">End Bal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
-                    {results.medianPathData.map((bal, idx) => {
-                      if (idx === 0) return null;
-                      const agg = results.yearlyAggregates[idx];
-                      if(!agg) return null;
-                      
-                      const prevBal = results.medianPathData[idx - 1];
-                      const withdraw = getMedian(agg.withdrawals);
-                      const income = getMedian(agg.incomes);
-                      const growth = getMedian(agg.growths);
-                      
-                      return (
-                        <tr key={idx} className="hover:bg-[hsl(var(--muted))] transition-colors">
-                          <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{currentYear + idx}</td>
-                          <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{params.age + idx}</td>
-                          <td className="px-5 py-3 text-right font-mono">{formatCurrency(prevBal)}</td>
-                          <td className="px-5 py-3 text-right font-mono text-rose-500 font-medium">-{formatCurrency(withdraw)}</td>
-                          <td className="px-5 py-3 text-right font-mono text-[hsl(var(--primary))] font-medium">+{formatCurrency(income)}</td>
-                          <td className="px-5 py-3 text-right font-mono text-emerald-500 font-medium">{formatCurrency(growth)}</td>
-                          <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(bal)}</td>
+            </aside>
+
+            <main className="flex-1 bg-[hsl(var(--background))] custom-scrollbar p-4 lg:p-8 lg:overflow-y-auto relative">
+              <div className="mx-auto max-w-6xl space-y-6">
+                
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                  <StatCard title="Total Portfolio" value={formatCurrency(totalPortfolio)} subtitle="Current value" isGradient={true} highlight={true} />
+                  <StatCard title="Required for 100%" value={formatCurrency(results.target100)} subtitle="Portfolio needed today" />
+                  <StatCard title="Success Rate" value={`${results.successRate}%`} subtitle="Simulations > $0" highlight={results.successRate > 90} />
+                  <StatCard title="Median Balance" value={formatCurrency(results.medianEnd)} subtitle="50th Percentile scenario" />
+                  <StatCard title="Worst Decile (10th)" value={formatCurrency(results.p10End)} subtitle="Unlucky scenario" />
+                  <StatCard title="Best Decile (90th)" value={formatCurrency(results.p90End)} subtitle="Lucky scenario" />
+                </div>
+
+                <Card>
+                  <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h3 className="font-bold text-[hsl(var(--foreground))] text-lg tracking-tight">Portfolio Projection</h3>
+                      <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">{params.simulations} Monte Carlo iterations based on applied volatility</p>
+                    </div>
+                  </div>
+                  <div className="h-[400px] w-full relative">
+                    <canvas ref={chartRef}></canvas>
+                  </div>
+                </Card>
+
+                <Card className="flex flex-col h-[500px] overflow-hidden p-0 border border-[hsl(var(--border))]">
+                  <div className="p-5 border-b border-[hsl(var(--border))] flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-[hsl(var(--card))]">
+                    <div>
+                      <h3 className="font-bold text-[hsl(var(--foreground))] text-lg tracking-tight">Detailed Projection</h3>
+                      <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">Median scenario year-over-year breakdown.</p>
+                    </div>
+                    <div className="rounded-lg border border-[hsl(var(--primary))/30] bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider w-fit">
+                      NOMINAL CAD
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-auto custom-scrollbar">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead className="sticky top-0 bg-[hsl(var(--background))] shadow-sm z-10">
+                        <tr className="text-xs text-[hsl(var(--muted-foreground))] font-bold uppercase tracking-wider">
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] border-t-2 border-t-transparent hover:border-t-[hsl(var(--primary))] transition-colors">Year</th>
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))]">Age</th>
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Start Bal</th>
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Withdraw</th>
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Income</th>
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Growth</th>
+                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right text-[hsl(var(--primary))]">End Bal</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                        {results.medianPathData.map((bal, idx) => {
+                          if (idx === 0) return null;
+                          const agg = results.yearlyAggregates[idx];
+                          if(!agg) return null;
+                          
+                          const prevBal = results.medianPathData[idx - 1];
+                          const withdraw = getMedian(agg.withdrawals);
+                          const income = getMedian(agg.incomes);
+                          const growth = getMedian(agg.growths);
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-[hsl(var(--muted))] transition-colors">
+                              <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{currentYear + idx}</td>
+                              <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{params.age + idx}</td>
+                              <td className="px-5 py-3 text-right font-mono">{formatCurrency(prevBal)}</td>
+                              <td className="px-5 py-3 text-right font-mono text-rose-500 font-medium">-{formatCurrency(withdraw)}</td>
+                              <td className="px-5 py-3 text-right font-mono text-[hsl(var(--primary))] font-medium">+{formatCurrency(income)}</td>
+                              <td className="px-5 py-3 text-right font-mono text-emerald-500 font-medium">{formatCurrency(growth)}</td>
+                              <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(bal)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+
+                <div className="text-center text-xs text-[hsl(var(--muted-foreground))] pb-8 space-y-1">
+                  <p>Disclaimer: Educational purposes only. Gaussian distribution used for Monte Carlo.</p>
+                  <p>Note: Values are exclusive of taxes. Investment fees deducted. Actual tax liability depends on jurisdiction.</p>
+                </div>
               </div>
-            </Card>
+            </main>
 
-            <div className="text-center text-xs text-[hsl(var(--muted-foreground))] pb-8 space-y-1">
-              <p>Disclaimer: Educational purposes only. Gaussian distribution used for Monte Carlo.</p>
-              <p>Note: Values are exclusive of taxes. Investment fees deducted. Actual tax liability depends on jurisdiction.</p>
-            </div>
           </div>
-        </main>
+        </div>
+      );
+    }
 
-      </div>
-    </div>
-  );
-}
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
