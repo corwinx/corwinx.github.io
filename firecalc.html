@@ -1051,7 +1051,7 @@
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
                     <div className="sm:col-span-3">
-                      <CurrencyInput label="Side Income ($)" value={params.currentIncome} tooltip="Income from part-time work or side hustles" currency={curLabel.currency} locale={curLabel.locale}
+                      <CurrencyInput label="Income ($)" value={params.currentIncome} tooltip="Income from full or part-time work, or side hustles" currency={curLabel.currency} locale={curLabel.locale}
                         onChange={(val) => handleCurrencyChange('currentIncome', val)} max={100000000} />
                     </div>
                     <div className="sm:col-span-2 pb-1">
@@ -1177,3 +1177,4 @@
   </script>
 </body>
 </html>
+
