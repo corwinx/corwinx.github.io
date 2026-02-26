@@ -195,11 +195,21 @@
         setLocalVal(value === 0 ? '' : value.toString());
       };
 
+      const handleChange = (e) => {
+        setLocalVal(e.target.value);
+        let num = parseCurrency(e.target.value);
+        if (!isNaN(num)) {
+          if (max !== undefined && num > max) num = max;
+          onChange(num);
+        }
+      };
+
       const handleBlur = () => {
         setIsFocused(false);
         let num = parseCurrency(localVal);
         if (max !== undefined && num > max) num = max;
         onChange(num);
+        setLocalVal(formatCurrency(num));
       };
 
       return (
@@ -214,7 +224,7 @@
           <input
             type="text"
             value={localVal}
-            onChange={(e) => setLocalVal(e.target.value)}
+            onChange={handleChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
@@ -224,7 +234,7 @@
       );
     };
 
-    const FormInput = ({ label, value, onChange, tooltip, type = "text", min, max, step, icon: Icon }) => {
+    const FormInput = ({ label, value, onChange, tooltip, type = "text", min, max, step, icon: Icon, lazy = false }) => {
       const [localVal, setLocalVal] = useState(value);
       const [isFocused, setIsFocused] = useState(false);
 
@@ -236,6 +246,16 @@
 
       const handleFocus = () => {
         setIsFocused(true);
+      };
+
+      const handleChange = (e) => {
+        setLocalVal(e.target.value);
+        if (!lazy) {
+          let num = parseFloat(e.target.value);
+          if (!isNaN(num)) {
+            onChange(num);
+          }
+        }
       };
 
       const handleBlur = () => {
@@ -260,7 +280,7 @@
           <input
             type={type}
             value={localVal}
-            onChange={(e) => setLocalVal(e.target.value)}
+            onChange={handleChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
@@ -414,7 +434,7 @@
           }
         } else {
           const total = params.tfsa + params.rrsp + params.nonreg + params.cash;
-          setParams(p => ({ ...p, withdrawalAmount: total * (p.withdrawalRate / 100) }));
+          setParams(p => ({ ...p, withdrawalAmount: Math.round(total * (p.withdrawalRate / 100)) }));
         }
       }, []);
 
@@ -449,6 +469,8 @@
           const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
           
           if (field === 'withdrawalAmount') {
+            num = Math.round(num);
+            newParams.withdrawalAmount = num;
             if (total > 0) newParams.withdrawalRate = parseFloat(((num / total) * 100).toFixed(4));
           } else if (['tfsa', 'rrsp', 'nonreg', 'cash'].includes(field)) {
             if (total > 0) newParams.withdrawalRate = parseFloat(((newParams.withdrawalAmount / total) * 100).toFixed(4));
@@ -458,10 +480,11 @@
       };
 
       const handleRateChange = (num) => {
+        let cleanRate = parseFloat(num.toFixed(4));
         setParams(p => {
-          const newParams = { ...p, withdrawalRate: num };
+          const newParams = { ...p, withdrawalRate: cleanRate };
           const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
-          newParams.withdrawalAmount = total * (num / 100);
+          newParams.withdrawalAmount = Math.round(total * (cleanRate / 100));
           return newParams;
         });
       };
@@ -883,19 +906,17 @@
                 <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="hidden md:flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
-                <select 
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                  className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm transition-colors hover:border-[hsl(var(--primary))/50]"
-                >
-                  <option value="zinc">Zinc (Dark)</option>
-                  <option value="sage">Sage (Dark)</option>
-                  <option value="light">Light</option>
-                </select>
-              </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <label className="hidden sm:block text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
+              <select 
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+                className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm transition-colors hover:border-[hsl(var(--primary))/50]"
+              >
+                <option value="zinc">Zinc (Dark)</option>
+                <option value="sage">Sage (Dark)</option>
+                <option value="light">Light</option>
+              </select>
             </div>
           </header>
 
@@ -903,11 +924,11 @@
             
             <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] lg:overflow-y-auto custom-scrollbar p-6 space-y-6">
               
-              <CollapsibleCard title="Profile" icon={User}>
+              <CollapsibleCard title="Setup" icon={User}>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <FormInput label="Current Age" type="number" value={params.age} min={1} max={100} onChange={(val) => handleNumChange('age', val, 1, 100)} />
                   <FormInput label="Years to Project" type="number" value={params.years} min={1} max={100} onChange={(val) => handleNumChange('years', val, 1, 100)} />
-                  <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(val) => handleNumChange('simulations', val, 100, 1000)} tooltip="Higher values improve accuracy but decrease performance." />
+                  <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(val) => handleNumChange('simulations', val, 100, 1000)} tooltip="Higher values improve accuracy but decrease performance." lazy={true} />
                 </div>
               </CollapsibleCard>
 
@@ -1030,7 +1051,7 @@
                       <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">Median scenario year-over-year breakdown.</p>
                     </div>
                     <div className="rounded-lg border border-[hsl(var(--primary))/30] bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider w-fit">
-                      NOMINAL CAD
+                      ALL VALUES NOMINAL CAD
                     </div>
                   </div>
                   <div className="flex-1 overflow-auto custom-scrollbar">
