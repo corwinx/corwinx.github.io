@@ -6,8 +6,10 @@
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 <url>
   <loc>https://cor.win/</loc>
-  <lastmod>2018-10-10T23:35:26+00:00</lastmod>
+  <lastmod>2025-08-11T23:35:26+00:00</lastmod>
 </url>
-
-
+<url>
+  <loc>https://cor.win/firecalc.html</loc>
+  <lastmod>2026-02-25T19:45:00+00:00</lastmod>
+</url>
 </urlset>
