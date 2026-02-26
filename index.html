@@ -3,173 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cor.win</title>
+    <meta name="description" content="A personal domain for digital exploration, specialized web utilities, and conceptual technology demos.">
+    <meta name="keywords" content="web technology, sandbox, developer tools, fire calc, responsive design, modern web">
+    <meta name="author" content="Corwin">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cor.win/">
+    <meta property="og:title" content="cor.win | Web Tech Sandbox">
+    <meta property="og:description" content="Exploring the limits of modern web technology through interactive sandboxes and tools.">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://cor.win/">
+    <meta property="twitter:title" content="cor.win | Web Tech Sandbox">
+    <meta property="twitter:description" content="Exploring the limits of modern web technology through interactive sandboxes and tools.">
+
+    <title>cor.win - Web Tech Sandbox</title>
+    
     <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Define a custom font family from Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
         
-        /* Custom keyframes for the glowing border effect */
         @keyframes glowing-border {
-            0% {
-                box-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899;
-            }
-            50% {
-                box-shadow: 0 0 20px #a855f7, 0 0 40px #ec4899;
-            }
-            100% {
-                box-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899;
-            }
+            0% { box-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899; }
+            50% { box-shadow: 0 0 20px #a855f7, 0 0 40px #ec4899; }
+            100% { box-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899; }
         }
         
-        /* Apply the glowing border animation to the main container */
         .glow-effect {
-            animation: glowing-border 3s ease-in-out infinite;
+            animation: glowing-border 4s ease-in-out infinite;
         }
 
-        /* Set a simple, clean background and make the body a flex container */
         body {
-            background-color: #1a202c;
-            color: #e2e8f0;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .orbitron {
             font-family: 'Orbitron', sans-serif;
         }
-        .min-h-dvh {
-            min-height: 100dvh;
+
+        .glass-nav {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
         }
     </style>
 </head>
-<body class="min-h-dvh flex flex-col items-center p-0">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Header section with the main title -->
-    <header class="w-full text-center mt-2">
-        <h1 class="text-6xl md:text-8xl font-bold tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-            cor.win
-        </h1>
-    </header>
+    <!-- Navigation Directory -->
+    <nav class="glass-nav sticky top-0 z-50 w-full px-6 py-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="orbitron font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
+                COR.WIN
+            </div>
+            <div class="flex gap-6 text-sm font-medium tracking-wide">
+                <a href="/" class="nav-link text-white">Home</a>
+                <a href="/firecalc.html" class="nav-link text-gray-400 hover:text-white">FIRE Calc</a>
+                <a href="#" class="nav-link text-gray-400 hover:text-white">Future Project</a>
+            </div>
+        </div>
+    </nav>
 
-    <!-- Main content area, styled with the glowing border -->
-    <main class="flex-grow flex items-center justify-center p-4 w-full max-w-2xl">
-        <div class="text-center p-8 md:p-10 rounded-2xl glow-effect bg-gray-800 bg-opacity-50 border-2 border-transparent">
-            <!-- These elements will be filled with a random quote by the JavaScript below -->
-            <h2 id="quote-text" class="text-xl md:text-3xl font-semibold mb-4 italic"></h2>
-            <p id="quote-author" class="text-md md:text-lg font-light text-gray-300 leading-relaxed"></p>
+    <!-- Main Section -->
+    <main class="flex-grow flex flex-col items-center justify-center p-6 mt-[-64px]">
+        
+        <div class="w-full text-center mb-12">
+            <h1 class="orbitron text-6xl md:text-8xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500 opacity-90">
+                cor.win
+            </h1>
+            <div class="h-1 w-24 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <div class="w-full max-w-3xl">
+            <div class="text-center p-10 md:p-16 rounded-3xl glow-effect bg-slate-800/40 backdrop-blur-xl border border-white/10 relative overflow-hidden group">
+                <!-- Decorative element -->
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl group-hover:bg-purple-600/20 transition-all"></div>
+                
+                <h2 id="quote-text" class="text-2xl md:text-4xl font-light mb-8 italic leading-tight text-white/90"></h2>
+                <p id="quote-author" class="orbitron text-xs md:text-sm tracking-[0.3em] uppercase text-purple-400 font-semibold"></p>
+            </div>
         </div>
     </main>
 
-    <!-- Footer section with the subtle domain purchase link -->
-    <footer class="w-full text-center mb-2">
-        <p class="text-sm text-gray-500">
-            <a href="https://www.namecheap.com/market/buynow/cor.win/"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="hover:text-purple-400 transition-colors duration-300 ease-in-out underline">
-                Interested in this domain?
-            </a>
-        </p>
+    <!-- Footer Section -->
+    <footer class="w-full py-10 border-t border-white/5 bg-slate-900/50">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:row justify-between items-center gap-6">
+            <div class="flex items-center gap-8">
+                <a href="https://www.namecheap.com/market/buynow/cor.win/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="group flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 hover:text-white transition-all">
+                    <span>Acquire Domain</span>
+                    <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </a>
+            </div>
+            
+            <div class="text-[10px] text-gray-600 uppercase tracking-widest">
+                &copy; 2026 cor.win
+            </div>
+        </div>
     </footer>
 
     <script>
-        // Array of famous quotes from historical figures, authors, and dystopian literature
         const quotes = [
-            {
-                text: "The art of war is of vital importance to the State. It is a matter of life and death, a road either to safety or to ruin.",
-                author: "Sun Tzu"
-            },
-            {
-                text: "The future belongs to those who believe in the beauty of their dreams.",
-                author: "Eleanor Roosevelt"
-            },
-            {
-                text: "If you're going through hell, keep going.",
-                author: "Winston Churchill"
-            },
-            {
-                text: "If you want a picture of the future, imagine a boot stamping on a human face—forever.",
-                author: "George Orwell, 1984"
-            },
-            {
-                text: "Veni, vidi, vici.",
-                author: "Julius Caesar"
-            },
-            {
-                text: "I disapprove of what you say, but I will defend to the death your right to say it.",
-                author: "Voltaire"
-            },
-            {
-                text: "Men are so simple and so much inclined to obey immediate necessities that a deceiver will never lack victims for his deceptions.",
-                author: "Niccolò Machiavelli"
-            },
-            {
-                text: "The best revenge is to be unlike him who performed the injustice.",
-                author: "Marcus Aurelius"
-            },
-            {
-                text: "It is better to be feared than loved, if you cannot be both.",
-                author: "Niccolò Machiavelli"
-            },
-            {
-                text: "The world suffers a lot. Not because of the violence of bad people, but because of the silence of good people.",
-                author: "Napoleon Bonaparte"
-            },
-            {
-                text: "We burn a book, we burn a man, a city.",
-                author: "Ray Bradbury, Fahrenheit 451"
-            },
-            {
-                text: "Ignorance is Strength.",
-                author: "George Orwell, 1984"
-            },
-            {
-                text: "Every new beginning comes from some other beginning's end.",
-                author: "Seneca"
-            },
-            {
-                text: "He who has a why to live can bear almost any how.",
-                author: "Friedrich Nietzsche"
-            },
-            {
-                text: "Tell me and I forget. Teach me and I remember. Involve me and I learn.",
-                author: "Benjamin Franklin"
-            },
-            {
-                text: "The greatest glory in living lies not in never falling, but in rising every time we fall.",
-                author: "Nelson Mandela"
-            },
-            {
-                text: "History is a set of lies agreed upon.",
-                author: "Napoleon Bonaparte"
-            },
-            {
-                text: "It's a dangerous business, Frodo, going out your door. You step onto the road, and if you don't keep your feet, there's no knowing where you might be swept off to.",
-                author: "J.R.R. Tolkien, The Lord of the Rings"
-            },
-            {
-                text: "The only impossible journey is the one you never begin.",
-                author: "Sun Tzu"
-            },
-            {
-                text: "Fear is the mind-killer.",
-                author: "Frank Herbert, Dune"
-            }
+            { text: "The art of war is of vital importance to the State. It is a matter of life and death, a road either to safety or to ruin.", author: "Sun Tzu" },
+            { text: "War is the father of all things.", author: "Heraclitus" },
+            { text: "If you're going through hell, keep going.", author: "Winston Churchill" },
+            { text: "If you want a picture of the future, imagine a boot stamping on a human face - forever.", author: "George Orwell, 1984" },
+            { text: "Veni, vidi, vici.", author: "Julius Caesar" },
+            { text: "Power is not a means; it is an end.", author: "George Orwell, 1984" },
+            { text: "Men are so simple and so much inclined to obey immediate necessities that a deceiver will never lack victims.", author: "Niccolo Machiavelli" },
+            { text: "The best revenge is to be unlike him who performed the injustice.", author: "Marcus Aurelius" },
+            { text: "It is better to be feared than loved, if you cannot be both.", author: "Niccolo Machiavelli" },
+            { text: "The world suffers a lot. Not because of the violence of bad people, but because of the silence of good people.", author: "Napoleon Bonaparte" },
+            { text: "We burn a book, we burn a man, a city.", author: "Ray Bradbury, Fahrenheit 451" },
+            { text: "Ignorance is Strength.", author: "George Orwell, 1984" },
+            { text: "History is a set of lies agreed upon.", author: "Napoleon Bonaparte" },
+            { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" },
+            { text: "War does not determine who is right - only who is left.", author: "Bertrand Russell" },
+            { text: "The object of power is power.", author: "George Orwell, 1984" },
+            { text: "The only thing that matters is who is left standing.", author: "General George S. Patton" },
+            { text: "It's a dangerous business, Frodo, going out your door.", author: "J.R.R. Tolkien" },
+            { text: "The only impossible journey is the one you never begin.", author: "Lao Tzu" },
+            { text: "Fear is the mind-killer.", author: "Frank Herbert, Dune" },
+            { text: "Violence is the supreme authority from which all other authority is derived.", author: "Robert Heinlein, Starship Troopers" },
+            { text: "Only the dead have seen the end of war.", author: "Plato" },
+            { text: "Choice is an illusion, created between those with power, and those without.", author: "The Merovingian, The Matrix Reloaded" },
+            { text: "A brave new world, that has such people in it.", author: "Aldous Huxley" },
+            { text: "The choice is not between life and death. The choice is between life and a slow decay.", author: "Cormac McCarthy, The Road" },
+            { text: "All animals are equal, but some animals are more equal than others.", author: "George Orwell, Animal Farm" },
+            { text: "Si vis pacem, para bellum. If you want peace, prepare for war.", author: "Vegetius" },
+            { text: "I have seen things you people wouldn't believe. Attack ships on fire off the shoulder of Orion.", author: "Roy Batty, Blade Runner" }
         ];
 
-        // Function to select and display a random quote
         function displayRandomQuote() {
-            // Get the HTML elements by their IDs
             const quoteElement = document.getElementById('quote-text');
             const authorElement = document.getElementById('quote-author');
-            
-            // Generate a random index to select a quote from the array
             const randomIndex = Math.floor(Math.random() * quotes.length);
             const randomQuote = quotes[randomIndex];
-
-            // Update the text content of the HTML elements
             quoteElement.textContent = `"${randomQuote.text}"`;
-            authorElement.textContent = `- ${randomQuote.author}`;
+            authorElement.textContent = randomQuote.author;
         }
 
-        // Call the function when the window loads to display a quote immediately
         window.onload = displayRandomQuote;
     </script>
 </body>
