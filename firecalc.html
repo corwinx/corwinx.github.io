@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Corwin's FIRE Calc (Canada)</title>
+  <title>Corwin's FIRE Calc</title>
   
   <!-- SEO Meta Tags -->
-  <meta name="description" content="A Canadian Financial Independence, Retire Early (FIRE) calculator. Plan your retirement with Monte Carlo simulations, CPP/OAS integration, and custom portfolio allocations.">
-  <meta name="keywords" content="FIRE calculator, Canadian retirement, Monte Carlo simulation, early retirement Canada, financial independence, CPP, OAS, TFSA, RRSP">
+  <meta name="description" content="A Financial Independence, Retire Early (FIRE) calculator. Plan your retirement with Monte Carlo simulations, government pension integration, and custom portfolio allocations.">
+  <meta name="keywords" content="FIRE calculator, retirement, Monte Carlo simulation, early retirement, financial independence, CPP, OAS, Social Security, TFSA, Roth IRA, RRSP, 401k">
   <meta name="author" content="Corwin">
   <link rel="canonical" href="https://cor.win/firecalc.html">
 
   <!-- Open Graph / Social Media Meta Tags -->
-  <meta property="og:title" content="Corwin's FIRE Calc (Canada)">
-  <meta property="og:description" content="Plan your early retirement in Canada with this advanced Monte Carlo simulation tool. Account for TFSA, RRSP, and inflation.">
+  <meta property="og:title" content="Corwin's FIRE Calc">
+  <meta property="og:description" content="Plan your early retirement with this advanced Monte Carlo simulation tool. Account for tax-advantaged accounts and inflation.">
   <meta property="og:url" content="https://cor.win/firecalc.html">
   <meta property="og:type" content="website">
   
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Corwin's FIRE Calc (Canada)">
-  <meta name="twitter:description" content="Plan your early retirement in Canada with this advanced Monte Carlo simulation tool.">
+  <meta name="twitter:title" content="Corwin's FIRE Calc">
+  <meta name="twitter:description" content="Plan your early retirement with this advanced Monte Carlo simulation tool.">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -167,9 +167,40 @@
       `
     };
 
-    const formatCurrency = (num) => {
+    const LABELS = {
+      CA: {
+        title: "Corwin's FIRE Calc (Canada)",
+        currency: "CAD",
+        locale: "en-CA",
+        tfsa: "TFSA ($)",
+        tfsaTooltip: "Tax-Free Savings Account",
+        rrsp: "RRSP / LIRA ($)",
+        rrspTooltip: "Tax-deferred retirement plan",
+        nonreg: "Non-Registered ($)",
+        nonregTooltip: "Taxable investments",
+        govPension: "CPP/OAS ($)",
+        govPensionTooltip: "Government benefits in today's dollars",
+        tableNominal: "ALL VALUES NOMINAL CAD"
+      },
+      US: {
+        title: "Corwin's FIRE Calc (USA)",
+        currency: "USD",
+        locale: "en-US",
+        tfsa: "Roth IRA ($)",
+        tfsaTooltip: "Tax-Free individual retirement account",
+        rrsp: "401(k) / Trad IRA ($)",
+        rrspTooltip: "Tax-deferred retirement plan",
+        nonreg: "Taxable Brokerage ($)",
+        nonregTooltip: "Standard taxable investment account",
+        govPension: "Social Security ($)",
+        govPensionTooltip: "Social Security benefits in today's dollars",
+        tableNominal: "ALL VALUES NOMINAL USD"
+      }
+    };
+
+    const formatCurrency = (num, currencyCode = 'CAD', localeCode = 'en-CA') => {
       if (isNaN(num)) return '$0';
-      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(num);
+      return new Intl.NumberFormat(localeCode, { style: 'currency', currency: currencyCode, maximumFractionDigits: 0 }).format(num);
     };
 
     const parseCurrency = (val) => {
@@ -196,15 +227,15 @@
       </div>
     );
 
-    const CurrencyInput = ({ label, value, onChange, max, tooltip, icon: Icon }) => {
-      const [localVal, setLocalVal] = useState(formatCurrency(value));
+    const CurrencyInput = ({ label, value, onChange, max, tooltip, icon: Icon, currency, locale }) => {
+      const [localVal, setLocalVal] = useState(formatCurrency(value, currency, locale));
       const [isFocused, setIsFocused] = useState(false);
 
       useEffect(() => {
         if (!isFocused) {
-          setLocalVal(formatCurrency(value));
+          setLocalVal(formatCurrency(value, currency, locale));
         }
-      }, [value, isFocused]);
+      }, [value, isFocused, currency, locale]);
 
       const handleFocus = () => {
         setIsFocused(true);
@@ -225,7 +256,7 @@
         let num = parseCurrency(localVal);
         if (max !== undefined && num > max) num = max;
         onChange(num);
-        setLocalVal(formatCurrency(num));
+        setLocalVal(formatCurrency(num, currency, locale));
       };
 
       return (
@@ -384,6 +415,7 @@
       const [shareText, setShareText] = useState('Share Link');
 
       const [params, setParams] = useState({
+        country: 'CA',
         age: 42,
         years: 50,
         simulations: 200,
@@ -427,7 +459,11 @@
         
         for (const [key, value] of urlParams.entries()) {
           if (key in params) {
-            paramsFromUrl[key] = parseFloat(value);
+            if (key === 'country') {
+              paramsFromUrl[key] = value;
+            } else {
+              paramsFromUrl[key] = parseFloat(value);
+            }
             hasUrlParams = true;
           }
         }
@@ -471,6 +507,8 @@
         styleTag.innerHTML = `:root { ${THEMES[theme] || THEMES['zinc']} }`;
         document.documentElement.setAttribute('data-theme', theme);
       }, [theme, isClient]);
+
+      const curLabel = LABELS[params.country || 'CA'];
 
       const handleNumChange = (field, val, min, max) => {
         let num = parseFloat(val) || 0;
@@ -865,8 +903,8 @@
                 callbacks: {
                   title: (items) => `${items[0].label} (Age: ${params.age + (parseInt(items[0].label) - currentYear)})`,
                   label: (context) => {
-                    if (context.dataset.label === 'Median Market Path') return `Median: ${formatCurrency(context.raw)}`;
-                    if (context.dataset.label === 'Earliest Failure') return `Early Fail: ${formatCurrency(context.raw)}`;
+                    if (context.dataset.label === 'Median Market Path') return `Median: ${formatCurrency(context.raw, curLabel.currency, curLabel.locale)}`;
+                    if (context.dataset.label === 'Earliest Failure') return `Early Fail: ${formatCurrency(context.raw, curLabel.currency, curLabel.locale)}`;
                     return '';
                   }
                 }
@@ -915,10 +953,10 @@
           <header className="sticky top-0 lg:static flex h-16 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-6 bg-[hsl(var(--card))]/80 backdrop-blur z-20">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]">
-                <Leaf className="h-4 w-4 text-emerald-500" />
+                <Leaf className="h-4 w-4 text-[hsl(var(--primary))]" />
               </div>
               <div>
-                <h1 className="text-sm font-bold tracking-tight">Corwin's FIRE Calc (Canada)</h1>
+                <h1 className="text-sm font-bold tracking-tight">{curLabel.title}</h1>
                 <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p>
               </div>
             </div>
@@ -941,23 +979,34 @@
             <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] lg:overflow-y-auto custom-scrollbar p-6 space-y-6">
               
               <CollapsibleCard title="Setup" icon={User}>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-4">
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">Region</label>
+                    <div className="flex bg-[hsl(var(--muted))] rounded-lg p-1 shadow-sm w-full">
+                      <button onClick={() => setParams(p => ({ ...p, country: 'CA' }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors flex justify-center items-center gap-1 ${params.country === 'CA' ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
+                        🇨🇦 Canada
+                      </button>
+                      <button onClick={() => setParams(p => ({ ...p, country: 'US' }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors flex justify-center items-center gap-1 ${params.country === 'US' ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
+                        🇺🇸 USA
+                      </button>
+                    </div>
+                  </div>
                   <FormInput label="Current Age" type="number" value={params.age} min={1} max={100} onChange={(val) => handleNumChange('age', val, 1, 100)} />
                   <FormInput label="Years to Project" type="number" value={params.years} min={1} max={100} onChange={(val) => handleNumChange('years', val, 1, 100)} />
                   <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(val) => handleNumChange('simulations', val, 100, 1000)} tooltip="Higher values improve accuracy but decrease performance." lazy={true} />
                 </div>
               </CollapsibleCard>
 
-              <CollapsibleCard title="Assets (CAD)" icon={Coins}>
+              <CollapsibleCard title={`Assets (${curLabel.currency})`} icon={Coins}>
                 <div className="space-y-4">
-                  <CurrencyInput label="TFSA ($)" value={params.tfsa} tooltip="Tax-Free Savings Account" 
+                  <CurrencyInput label={curLabel.tfsa} value={params.tfsa} tooltip={curLabel.tfsaTooltip} currency={curLabel.currency} locale={curLabel.locale}
                     onChange={(val) => handleCurrencyChange('tfsa', val)} max={5000000} />
-                  <CurrencyInput label="RRSP / LIRA ($)" value={params.rrsp} tooltip="Tax-deferred retirement plan" 
+                  <CurrencyInput label={curLabel.rrsp} value={params.rrsp} tooltip={curLabel.rrspTooltip} currency={curLabel.currency} locale={curLabel.locale}
                     onChange={(val) => handleCurrencyChange('rrsp', val)} max={10000000} />
-                  <CurrencyInput label="Non-Registered ($)" value={params.nonreg} tooltip="Taxable investments" 
+                  <CurrencyInput label={curLabel.nonreg} value={params.nonreg} tooltip={curLabel.nonregTooltip} currency={curLabel.currency} locale={curLabel.locale}
                     onChange={(val) => handleCurrencyChange('nonreg', val)} max={10000000} />
                   <div className="h-px w-full bg-[hsl(var(--border))] my-4" />
-                  <CurrencyInput label="Cash / Fixed ($)" value={params.cash} tooltip="Excluded from equity mix" 
+                  <CurrencyInput label="Cash / Fixed ($)" value={params.cash} tooltip="Excluded from equity mix" currency={curLabel.currency} locale={curLabel.locale}
                     onChange={(val) => handleCurrencyChange('cash', val)} max={10000000} />
                   
                   <div className="pt-2">
@@ -969,7 +1018,7 @@
               <CollapsibleCard title="Assumptions" icon={Sliders}>
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4 relative">
-                    <CurrencyInput label="Annual Spend ($)" value={params.withdrawalAmount} tooltip="Master Value. Target spending in today's dollars."
+                    <CurrencyInput label="Annual Spend ($)" value={params.withdrawalAmount} tooltip="Master Value. Target spending in today's dollars." currency={curLabel.currency} locale={curLabel.locale}
                       onChange={(val) => handleCurrencyChange('withdrawalAmount', val, totalPortfolio * 0.5)} />
                     <FormInput label="Rate (%)" type="number" step="0.01" value={params.withdrawalRate} tooltip="Calculated initial withdrawal rate."
                       onChange={(val) => handleRateChange(val)} min={0} max={50} />
@@ -1002,7 +1051,7 @@
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
                     <div className="sm:col-span-3">
-                      <CurrencyInput label="Side Income ($)" value={params.currentIncome} tooltip="Income from part-time work or side hustles"
+                      <CurrencyInput label="Side Income ($)" value={params.currentIncome} tooltip="Income from part-time work or side hustles" currency={curLabel.currency} locale={curLabel.locale}
                         onChange={(val) => handleCurrencyChange('currentIncome', val)} max={100000000} />
                     </div>
                     <div className="sm:col-span-2 pb-1">
@@ -1011,7 +1060,7 @@
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
                     <div className="sm:col-span-3">
-                      <CurrencyInput label="CPP/OAS ($)" value={params.otherIncome} tooltip="Government benefits in today's dollars"
+                      <CurrencyInput label={curLabel.govPension} value={params.otherIncome} tooltip={curLabel.govPensionTooltip} currency={curLabel.currency} locale={curLabel.locale}
                         onChange={(val) => handleCurrencyChange('otherIncome', val)} max={1000000} />
                     </div>
                     <div className="sm:col-span-2 pb-1">
@@ -1040,12 +1089,12 @@
               <div className="mx-auto max-w-6xl space-y-6">
                 
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                  <StatCard title="Total Portfolio" value={formatCurrency(totalPortfolio)} subtitle="Current value" isGradient={true} highlight={true} />
-                  <StatCard title="Required for 100%" value={formatCurrency(results.target100)} subtitle="Portfolio needed today" />
+                  <StatCard title="Total Portfolio" value={formatCurrency(totalPortfolio, curLabel.currency, curLabel.locale)} subtitle="Current value" isGradient={true} highlight={true} />
+                  <StatCard title="Required for 100%" value={formatCurrency(results.target100, curLabel.currency, curLabel.locale)} subtitle="Portfolio needed today" />
                   <StatCard title="Success Rate" value={`${results.successRate}%`} subtitle="Simulations > $0" highlight={results.successRate > 90} />
-                  <StatCard title="Median Balance" value={formatCurrency(results.medianEnd)} subtitle="50th Percentile scenario" />
-                  <StatCard title="Worst Decile (10th)" value={formatCurrency(results.p10End)} subtitle="Unlucky scenario" />
-                  <StatCard title="Best Decile (90th)" value={formatCurrency(results.p90End)} subtitle="Lucky scenario" />
+                  <StatCard title="Median Balance" value={formatCurrency(results.medianEnd, curLabel.currency, curLabel.locale)} subtitle="50th Percentile scenario" />
+                  <StatCard title="Worst Decile (10th)" value={formatCurrency(results.p10End, curLabel.currency, curLabel.locale)} subtitle="Unlucky scenario" />
+                  <StatCard title="Best Decile (90th)" value={formatCurrency(results.p90End, curLabel.currency, curLabel.locale)} subtitle="Lucky scenario" />
                 </div>
 
                 <Card>
@@ -1067,7 +1116,7 @@
                       <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">Median scenario year-over-year breakdown.</p>
                     </div>
                     <div className="rounded-lg border border-[hsl(var(--primary))/30] bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider w-fit">
-                      ALL VALUES NOMINAL CAD
+                      {curLabel.tableNominal}
                     </div>
                   </div>
                   <div className="flex-1 overflow-auto custom-scrollbar">
@@ -1098,11 +1147,11 @@
                             <tr key={idx} className="hover:bg-[hsl(var(--muted))] transition-colors">
                               <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{currentYear + idx}</td>
                               <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{params.age + idx}</td>
-                              <td className="px-5 py-3 text-right font-mono">{formatCurrency(prevBal)}</td>
-                              <td className="px-5 py-3 text-right font-mono text-rose-500 font-medium">-{formatCurrency(withdraw)}</td>
-                              <td className="px-5 py-3 text-right font-mono text-[hsl(var(--primary))] font-medium">+{formatCurrency(income)}</td>
-                              <td className="px-5 py-3 text-right font-mono text-emerald-500 font-medium">{formatCurrency(growth)}</td>
-                              <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(bal)}</td>
+                              <td className="px-5 py-3 text-right font-mono">{formatCurrency(prevBal, curLabel.currency, curLabel.locale)}</td>
+                              <td className="px-5 py-3 text-right font-mono text-rose-500 font-medium">-{formatCurrency(withdraw, curLabel.currency, curLabel.locale)}</td>
+                              <td className="px-5 py-3 text-right font-mono text-[hsl(var(--primary))] font-medium">+{formatCurrency(income, curLabel.currency, curLabel.locale)}</td>
+                              <td className="px-5 py-3 text-right font-mono text-emerald-500 font-medium">{formatCurrency(growth, curLabel.currency, curLabel.locale)}</td>
+                              <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(bal, curLabel.currency, curLabel.locale)}</td>
                             </tr>
                           );
                         })}
