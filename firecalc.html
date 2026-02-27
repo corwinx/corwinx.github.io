@@ -478,7 +478,7 @@
       if (!isClient) return null;
 
       return (
-        <div className="flex min-h-screen lg:h-screen w-full flex-col lg:overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans">
+        <div className="flex h-screen w-full flex-col lg:overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans overflow-y-auto lg:overflow-y-hidden">
           <header className="sticky top-0 lg:static flex h-16 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-6 bg-[hsl(var(--card))]/80 backdrop-blur z-20">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]"><Leaf className="h-4 w-4 text-[hsl(var(--primary))]" /></div>
