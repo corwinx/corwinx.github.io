@@ -252,7 +252,7 @@
     const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => (
       <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
         <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
-        <div className={`text-xl font-bold tracking-tight truncate ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} title={value}>{value}</div>
+        <div className={`text-lg font-bold tracking-tight truncate ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} title={value}>{value}</div>
         {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
       </div>
     );
