@@ -253,6 +253,7 @@
       <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
         <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
         <div className={`text-2xl font-bold tracking-tight ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`}>{value}</div>
+        <div className={`text-xl font-bold tracking-tight truncate ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} title={value}>{value}</div>
         {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
       </div>
     );
@@ -268,7 +269,7 @@
       const currentYear = new Date().getFullYear();
       const defaultParams = { country: 'US', age: 50, years: 44, simulations: 200, tfsa: 100000, rrsp: 250000, nonreg: 50000, cash: 20000, stockAlloc: 60, withdrawalAmount: 16800, withdrawalRate: 4.0, inflation: 2.7, flexibleSpending: false, marketReturn: 8.0, marketVariance: 12.0, bondReturn: 2.5, merFee: 0.25, currentIncome: 0, currentIncomeEnd: currentYear + 5, otherIncome: 18000, otherIncomeStart: 2048 };
 
-      const [theme, setTheme] = useState('zinc');
+      const [theme, setTheme] = useState('cyber');
       const [isClient, setIsClient] = useState(false);
       const [shareText, setShareText] = useState('Share Link');
       const [params, setParams] = useState(defaultParams);
