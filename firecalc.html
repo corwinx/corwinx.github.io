@@ -72,7 +72,7 @@
       margin: 0;
       padding: 0;
     }
-    * {
+    .emoji-text {
       font-family: 'Inter', 'Noto Color Emoji', sans-serif;
     }
     .custom-scrollbar::-webkit-scrollbar {
@@ -504,7 +504,7 @@
                     <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Region</label>
                     <div className="flex bg-[hsl(var(--muted))] rounded-lg p-1 shadow-sm w-full">
                       {['US', 'CA', 'EU'].map(c => (
-                        <button key={c} onClick={() => setParams(p => ({ ...p, country: c }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${params.country === c ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
+                        <button key={c} onClick={() => setParams(p => ({ ...p, country: c }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors emoji-text ${params.country === c ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
                           {c === 'US' ? '🇺🇸 USA' : c === 'CA' ? '🇨🇦 Canada' : '🇪🇺 EU'}
                         </button>
                       ))}
