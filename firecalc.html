@@ -220,7 +220,11 @@
             <div className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">{Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}{title}</div>
             <ChevronDown className={`h-4 w-4 text-[hsl(var(--primary))] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
-          <div className={`transition-all duration-500 ease-in-out origin-top ${isOpen ? 'max-h-[2500px] opacity-100' : 'max-h-0 opacity-0'}`}><div className="p-5 pt-0">{children}</div></div>
+          <div className={`grid transition-all duration-500 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <div className="p-5 pt-0">{children}</div>
+            </div>
+          </div>
         </div>
       );
     };
