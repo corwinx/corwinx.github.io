@@ -1,17 +1,15 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Corwin's FIRE Calc</title>
   
-  <!-- SEO Meta Tags -->
   <meta name="description" content="A Financial Independence, Retire Early (FIRE) calculator. Plan your retirement with Monte Carlo simulations, government pension integration, and custom portfolio allocations.">
   <meta name="keywords" content="FIRE calculator, retirement, Monte Carlo simulation, early retirement, financial independence, CPP, OAS, Social Security, TFSA, Roth IRA, RRSP, 401k">
   <meta name="author" content="Corwin">
   <link rel="canonical" href="https://cor.win/firecalc.html">
 
-  <!-- Open Graph / Social Media Meta Tags -->
   <meta property="og:title" content="Corwin's FIRE Calc">
   <meta property="og:description" content="Plan your early retirement with this advanced Monte Carlo simulation tool. Account for tax-advantaged accounts and inflation.">
   <meta property="og:url" content="https://cor.win/firecalc.html">
@@ -21,7 +19,6 @@
   <meta name="twitter:title" content="Corwin's FIRE Calc">
   <meta name="twitter:description" content="Plan your early retirement with this advanced Monte Carlo simulation tool.">
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
       tailwind.config = {
@@ -60,15 +57,14 @@
       }
   </script>
 
-  <!-- React & ReactDOM -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   
-  <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 
   <style>
     body {
@@ -91,112 +87,35 @@
     }
   </style>
 </head>
-<body>
+<body class="bg-[hsl(var(--background))]">
   <div id="root"></div>
 
   <script type="text/babel">
-    /*
-     * (c) 2025-2026 Corwin. All Rights Reserved.
-     * Official Tool for: https://cor.win/
-     * Unauthorized reproduction, distribution, modification, or use of this
-     * code for commercial purposes is strictly prohibited without express
-     * written permission.
-     */
+    const { useState, useEffect, useRef, useMemo } = React;
 
-    const { useState, useEffect, useRef } = React;
-
-    // --- Icon Components ---
-    const Leaf = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 20A7 7 0 0 1 14 6a7 7 0 0 1 7 7v7h-7a7 7 0 0 1-3-10z"></path></svg>;
-    const User = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
-    const Coins = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path><path d="m16.71 13.88.7.71-2.82 2.82"></path></svg>;
-    const Sliders = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="4" x2="20" y1="21" y2="14"></line><line x1="4" x2="20" y1="10" y2="3"></line><line x1="12" x2="12" y1="21" y2="14"></line><line x1="12" x2="12" y1="10" y2="3"></line><path d="M8 14h8v-4H8v4z"></path></svg>;
-    const Banknote = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="12" x="2" y="6" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>;
-    const Dices = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="12" height="12" x="2" y="10" rx="2" ry="2"></rect><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"></path><path d="M6 18h.01"></path><path d="M10 14h.01"></path><path d="M15 6h.01"></path><path d="M18 9h.01"></path></svg>;
-    const Info = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>;
-    const ChevronDown = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"></path></svg>;
-    const Share2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>;
+    let baseSeed = 1;
 
     const THEMES = {
-      zinc: `
-        --background: 240 10% 4%;
-        --foreground: 0 0% 98%;
-        --card: 240 10% 9%;
-        --card-foreground: 0 0% 98%;
-        --primary: 75 100% 50%;
-        --primary-foreground: 240 10% 4%;
-        --muted: 240 4% 16%;
-        --muted-foreground: 240 5% 65%;
-        --border: 240 4% 16%;
-        --ring: 75 100% 50%;
-        --chart-grid: rgba(255,255,255,0.05);
-        --chart-text: #94a3b8;
-        --card-gradient: linear-gradient(135deg, hsl(240 10% 4%) 0%, hsl(75 100% 10%) 100%);
-        --primary-gradient: linear-gradient(135deg, hsl(75 100% 50%) 0%, hsl(75 100% 35%) 100%);
-      `,
-      sage: `
-        --background: 155 10% 6%;
-        --foreground: 155 10% 98%;
-        --card: 155 10% 10%;
-        --card-foreground: 155 10% 98%;
-        --primary: 150 100% 45%;
-        --primary-foreground: 155 20% 10%;
-        --muted: 155 10% 18%;
-        --muted-foreground: 155 10% 65%;
-        --border: 155 10% 18%;
-        --ring: 150 100% 45%;
-        --chart-grid: rgba(255,255,255,0.05);
-        --chart-text: #94a3b8;
-        --card-gradient: linear-gradient(135deg, hsl(155 10% 6%) 0%, hsl(150 100% 10%) 100%);
-        --primary-gradient: linear-gradient(135deg, hsl(150 100% 45%) 0%, hsl(150 100% 30%) 100%);
-      `,
-      light: `
-        --background: 210 40% 98%;
-        --foreground: 240 10% 4%;
-        --card: 0 0% 100%;
-        --card-foreground: 240 10% 4%;
-        --primary: 84 81% 44%;
-        --primary-foreground: 0 0% 100%;
-        --muted: 240 5% 90%;
-        --muted-foreground: 240 4% 46%;
-        --border: 240 6% 85%;
-        --ring: 84 81% 44%;
-        --chart-grid: rgba(0,0,0,0.05);
-        --chart-text: #64748b;
-        --card-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(84 81% 90%) 100%);
-        --primary-gradient: linear-gradient(135deg, hsl(84 81% 44%) 0%, hsl(84 81% 30%) 100%);
-      `
+      zinc: `--background: 240 10% 4%; --foreground: 0 0% 98%; --card: 240 10% 9%; --card-foreground: 0 0% 98%; --primary: 75 100% 50%; --primary-foreground: 240 10% 4%; --muted: 240 4% 16%; --muted-foreground: 240 5% 65%; --border: 240 4% 16%; --ring: 75 100% 50%; --chart-grid: rgba(255,255,255,0.05); --chart-text: #94a3b8; --card-gradient: linear-gradient(135deg, hsl(240 10% 4%) 0%, hsl(75 100% 10%) 100%); --primary-gradient: linear-gradient(135deg, hsl(75 100% 50%) 0%, hsl(75 100% 35%) 100%);`,
+      sage: `--background: 155 10% 6%; --foreground: 155 10% 98%; --card: 155 10% 10%; --card-foreground: 155 10% 98%; --primary: 150 100% 45%; --primary-foreground: 155 20% 10%; --muted: 155 10% 18%; --muted-foreground: 155 10% 65%; --border: 155 10% 18%; --ring: 150 100% 45%; --chart-grid: rgba(255,255,255,0.05); --chart-text: #94a3b8; --card-gradient: linear-gradient(135deg, hsl(155 10% 6%) 0%, hsl(150 100% 10%) 100%); --primary-gradient: linear-gradient(135deg, hsl(150 100% 45%) 0%, hsl(150 100% 30%) 100%);`,
+      light: `--background: 210 40% 98%; --foreground: 240 10% 4%; --card: 0 0% 100%; --card-foreground: 240 10% 4%; --primary: 84 81% 44%; --primary-foreground: 0 0% 100%; --muted: 240 5% 90%; --muted-foreground: 240 4% 46%; --border: 240 6% 85%; --ring: 84 81% 44%; --chart-grid: rgba(0,0,0,0.05); --chart-text: #64748b; --card-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(84 81% 90%) 100%); --primary-gradient: linear-gradient(135deg, hsl(84 81% 44%) 0%, hsl(84 81% 30%) 100%);`
     };
 
     const LABELS = {
-      CA: {
-        title: "Corwin's FIRE Calc (Canada)",
-        currency: "CAD",
-        locale: "en-CA",
-        tfsa: "TFSA ($)",
-        tfsaTooltip: "Tax-Free Savings Account",
-        rrsp: "RRSP / LIRA ($)",
-        rrspTooltip: "Tax-deferred retirement plan",
-        nonreg: "Non-Registered ($)",
-        nonregTooltip: "Taxable investments",
-        govPension: "CPP/OAS ($)",
-        govPensionTooltip: "Government benefits in today's dollars",
-        tableNominal: "ALL VALUES NOMINAL CAD"
-      },
-      US: {
-        title: "Corwin's FIRE Calc (USA)",
-        currency: "USD",
-        locale: "en-US",
-        tfsa: "Roth IRA ($)",
-        tfsaTooltip: "Tax-Free individual retirement account",
-        rrsp: "401(k) / Trad IRA ($)",
-        rrspTooltip: "Tax-deferred retirement plan",
-        nonreg: "Taxable Brokerage ($)",
-        nonregTooltip: "Standard taxable investment account",
-        govPension: "Social Security ($)",
-        govPensionTooltip: "Social Security benefits in today's dollars",
-        tableNominal: "ALL VALUES NOMINAL USD"
-      }
+      CA: { title: "Corwin's FIRE Calc (Canada)", currency: "CAD", locale: "en-CA", symbol: "$", tfsa: "TFSA ($)", tfsaTooltip: "Tax-Free Savings Account", rrsp: "RRSP / LIRA ($)", rrspTooltip: "Tax-deferred retirement plan", nonreg: "Non-Registered ($)", nonregTooltip: "Taxable investments", govPension: "CPP/OAS ($)", govPensionTooltip: "Government benefits in today's dollars", tableNominal: "ALL VALUES NOMINAL CAD" },
+      US: { title: "Corwin's FIRE Calc (USA)", currency: "USD", locale: "en-US", symbol: "$", tfsa: "Roth IRA ($)", tfsaTooltip: "Tax-Free individual retirement account", rrsp: "401(k) / Trad IRA ($)", rrspTooltip: "Tax-deferred retirement plan", nonreg: "Taxable Brokerage ($)", nonregTooltip: "Standard taxable investment account", govPension: "Social Security ($)", govPensionTooltip: "Social Security benefits in today's dollars", tableNominal: "ALL VALUES NOMINAL USD" },
+      EU: { title: "Corwin's FIRE Calc (EU)", currency: "EUR", locale: "en-IE", symbol: "€", tfsa: "Tax-Free Savings (€)", tfsaTooltip: "Tax-advantaged savings like ISA or equivalent", rrsp: "Pension Account (€)", rrspTooltip: "Tax-deferred retirement or pension plan", nonreg: "Investment Account (€)", nonregTooltip: "Standard taxable brokerage account", govPension: "State Pension (€)", govPensionTooltip: "National state pension benefits in today's euros", tableNominal: "ALL VALUES NOMINAL EUR" }
     };
+
+    const KEY_MAP = {
+      country: 'c', age: 'a', years: 'y', simulations: 's', tfsa: 't', rrsp: 'r', nonreg: 'n',
+      cash: 'ch', stockAlloc: 'sa', withdrawalAmount: 'wa', withdrawalRate: 'wr', inflation: 'i',
+      flexibleSpending: 'fs', marketReturn: 'mr', marketVariance: 'mv', bondReturn: 'br',
+      merFee: 'mf', currentIncome: 'ci', currentIncomeEnd: 'cie', otherIncome: 'oi',
+      otherIncomeStart: 'ois'
+    };
+
+    const REVERSE_KEY_MAP = Object.fromEntries(Object.entries(KEY_MAP).map(([k, v]) => [v, k]));
 
     const formatCurrency = (num, currencyCode = 'CAD', localeCode = 'en-CA') => {
       if (isNaN(num)) return '$0';
@@ -208,15 +127,25 @@
       return parseFloat(clean) || 0;
     };
 
-    let baseSeed = 1;
-
     const getMedian = (values) => {
-      if (values.length === 0) return 0;
+      if (!values || values.length === 0) return 0;
       const sorted = [...values].sort((a, b) => a - b);
       const half = Math.floor(sorted.length / 2);
       if (sorted.length % 2) return sorted[half];
       return (sorted[half - 1] + sorted[half]) / 2.0;
     };
+
+    const Leaf = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 20A7 7 0 0 1 14 6a7 7 0 0 1 7 7v7h-7a7 7 0 0 1-3-10z"></path></svg>;
+    const User = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
+    const Coins = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path><path d="m16.71 13.88.7.71-2.82 2.82"></path></svg>;
+    const Sliders = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="4" x2="20" y1="21" y2="14"></line><line x1="4" x2="20" y1="10" y2="3"></line><line x1="12" x2="12" y1="21" y2="14"></line><line x1="12" x2="12" y1="10" y2="3"></line><path d="M8 14h8v-4H8v4z"></path></svg>;
+    const Banknote = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="12" x="2" y="6" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>;
+    const Dices = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="12" height="12" x="2" y="10" rx="2" ry="2"></rect><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"></path><path d="M6 18h.01"></path><path d="M10 14h.01"></path><path d="M15 6h.01"></path><path d="M18 9h.01"></path></svg>;
+    const Info = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>;
+    const ChevronDown = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"></path></svg>;
+    const Share2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>;
+    const ShieldCheck = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
+    const Link2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 17H7A5 5 0 0 1 7 7h2"></path><path d="M15 7h2a5 5 0 0 1 0 10h-2"></path><line x1="8" x2="16" y1="12" y2="12"></line></svg>;
 
     const Tooltip = ({ text }) => (
       <div className="group relative ml-1 inline-flex items-center">
@@ -230,53 +159,27 @@
     const CurrencyInput = ({ label, value, onChange, max, tooltip, icon: Icon, currency, locale }) => {
       const [localVal, setLocalVal] = useState(formatCurrency(value, currency, locale));
       const [isFocused, setIsFocused] = useState(false);
-
-      useEffect(() => {
-        if (!isFocused) {
-          setLocalVal(formatCurrency(value, currency, locale));
-        }
-      }, [value, isFocused, currency, locale]);
-
-      const handleFocus = () => {
-        setIsFocused(true);
-        setLocalVal(value === 0 ? '' : value.toString());
-      };
-
+      useEffect(() => { if (!isFocused) setLocalVal(formatCurrency(value, currency, locale)); }, [value, isFocused, currency, locale]);
+      const handleFocus = () => { setIsFocused(true); setLocalVal(value === 0 ? '' : Math.round(value).toString()); };
       const handleChange = (e) => {
         setLocalVal(e.target.value);
         let num = parseCurrency(e.target.value);
-        if (!isNaN(num)) {
-          if (max !== undefined && num > max) num = max;
-          onChange(num);
-        }
+        if (!isNaN(num)) { if (max !== undefined && num > max) num = max; onChange(Math.round(num)); }
       };
-
       const handleBlur = () => {
         setIsFocused(false);
-        let num = parseCurrency(localVal);
+        let num = Math.round(parseCurrency(localVal));
         if (max !== undefined && num > max) num = max;
         onChange(num);
         setLocalVal(formatCurrency(num, currency, locale));
       };
-
       return (
         <div className="space-y-1.5 w-full">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">
-              {Icon && <Icon className="h-3 w-3" />}
-              {label}
-            </label>
+            <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">{Icon && <Icon className="h-3 w-3" />}{label}</label>
             {tooltip && <Tooltip text={tooltip} />}
           </div>
-          <input
-            type="text"
-            value={localVal}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-            className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]"
-          />
+          <input type="text" value={localVal} onChange={handleChange} onFocus={handleFocus} onBlur={handleBlur} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]" />
         </div>
       );
     };
@@ -284,27 +187,11 @@
     const FormInput = ({ label, value, onChange, tooltip, type = "text", min, max, step, icon: Icon, lazy = false }) => {
       const [localVal, setLocalVal] = useState(value);
       const [isFocused, setIsFocused] = useState(false);
-
-      useEffect(() => {
-        if (!isFocused) {
-          setLocalVal(value);
-        }
-      }, [value, isFocused]);
-
-      const handleFocus = () => {
-        setIsFocused(true);
-      };
-
+      useEffect(() => { if (!isFocused) setLocalVal(value); }, [value, isFocused]);
       const handleChange = (e) => {
         setLocalVal(e.target.value);
-        if (!lazy) {
-          let num = parseFloat(e.target.value);
-          if (!isNaN(num)) {
-            onChange(num);
-          }
-        }
+        if (!lazy) { let num = parseFloat(e.target.value); if (!isNaN(num)) onChange(num); }
       };
-
       const handleBlur = () => {
         setIsFocused(false);
         let num = parseFloat(localVal);
@@ -314,64 +201,26 @@
         setLocalVal(num);
         onChange(num);
       };
-
       return (
         <div className="space-y-1.5 w-full">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">
-              {Icon && <Icon className="h-3 w-3" />}
-              {label}
-            </label>
+            <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">{Icon && <Icon className="h-3 w-3" />}{label}</label>
             {tooltip && <Tooltip text={tooltip} />}
           </div>
-          <input
-            type={type}
-            value={localVal}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-            min={min}
-            max={max}
-            step={step}
-            className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]"
-          />
+          <input type={type} value={localVal} onChange={handleChange} onFocus={() => setIsFocused(true)} onBlur={handleBlur} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} min={min} max={max} step={step} className="flex h-10 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))] shadow-sm transition-all hover:border-[hsl(var(--primary))/50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))/50] focus-visible:border-[hsl(var(--primary))]" />
         </div>
       );
     };
 
-    const Card = ({ title, icon: Icon, children, className = '' }) => (
-      <div className={`rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-md transition-colors duration-300 ${className}`}>
-        {title && (
-          <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">
-            {Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}
-            {title}
-          </h3>
-        )}
-        {children}
-      </div>
-    );
-
     const CollapsibleCard = ({ title, icon: Icon, children, defaultOpen = true, className = '' }) => {
       const [isOpen, setIsOpen] = useState(defaultOpen);
-
       return (
         <div className={`rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-md transition-colors duration-300 overflow-hidden ${className}`}>
-          <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full flex items-center justify-between p-5 hover:bg-[hsl(var(--muted))/50] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-inset"
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">
-              {Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}
-              {title}
-            </div>
+          <button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between p-5 hover:bg-[hsl(var(--muted))/50] transition-colors focus:outline-none">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--foreground))]">{Icon && <Icon className="h-4 w-4 text-[hsl(var(--primary))]" />}{title}</div>
             <ChevronDown className={`h-4 w-4 text-[hsl(var(--primary))] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
-          <div className={`transition-all duration-300 ease-in-out origin-top ${isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="p-5 pt-0">
-              {children}
-            </div>
-          </div>
+          <div className={`transition-all duration-500 ease-in-out origin-top ${isOpen ? 'max-h-[2500px] opacity-100' : 'max-h-0 opacity-0'}`}><div className="p-5 pt-0">{children}</div></div>
         </div>
       );
     };
@@ -379,136 +228,80 @@
     const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => (
       <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
         <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
-        <div className={`text-2xl font-bold tracking-tight ${highlight && !isGradient ? 'text-[hsl(var(--primary))] drop-shadow-[0_0_8px_hsl(var(--primary)/0.2)]' : 'text-[hsl(var(--foreground))]'}`}>
-          {value}
-        </div>
+        <div className={`text-2xl font-bold tracking-tight ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`}>{value}</div>
         {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
       </div>
     );
 
     const Slider = ({ value, min, max, onChange, label, displayValue }) => (
       <div className="space-y-2 w-full">
-        {label && (
-          <div className="flex justify-between text-xs font-semibold text-[hsl(var(--muted-foreground))]">
-            <span>{label}</span>
-            <span className="font-mono text-[hsl(var(--foreground))]">{displayValue || value}</span>
-          </div>
-        )}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => onChange(parseInt(e.target.value))}
-          className="w-full h-1.5 appearance-none rounded-full bg-[hsl(var(--border))] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[hsl(var(--foreground))] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[hsl(var(--primary))] [&::-webkit-slider-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:shadow-[0_0_10px_hsl(var(--primary)/0.5)] [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-[hsl(var(--primary))] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[hsl(var(--foreground))] [&::-moz-range-thumb]:cursor-pointer hover:[&::-moz-range-thumb]:shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all"
-        />
+        {label && <div className="flex justify-between text-xs font-semibold text-[hsl(var(--muted-foreground))]"><span>{label}</span><span className="font-mono text-[hsl(var(--foreground))]">{displayValue || value}</span></div>}
+        <input type="range" min={min} max={max} value={value} onChange={(e) => onChange(parseInt(e.target.value))} className="w-full h-1.5 appearance-none rounded-full bg-[hsl(var(--border))] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[hsl(var(--foreground))] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[hsl(var(--primary))] transition-all" />
       </div>
     );
 
     function App() {
       const currentYear = new Date().getFullYear();
+      const defaultParams = { country: 'US', age: 50, years: 44, simulations: 200, tfsa: 100000, rrsp: 250000, nonreg: 50000, cash: 20000, stockAlloc: 60, withdrawalAmount: 16800, withdrawalRate: 4.0, inflation: 2.7, flexibleSpending: false, marketReturn: 8.0, marketVariance: 12.0, bondReturn: 2.5, merFee: 0.25, currentIncome: 0, currentIncomeEnd: currentYear + 5, otherIncome: 18000, otherIncomeStart: 2048 };
 
       const [theme, setTheme] = useState('zinc');
       const [isClient, setIsClient] = useState(false);
+      const [shareText, setShareText] = useState('Share Link');
+      const [params, setParams] = useState(defaultParams);
       const chartRef = useRef(null);
       const chartInstance = useRef(null);
-      const [shareText, setShareText] = useState('Share Link');
 
-      const [params, setParams] = useState({
-        country: 'CA',
-        age: 42,
-        years: 50,
-        simulations: 200,
-        tfsa: 100000,
-        rrsp: 250000,
-        nonreg: 50000,
-        cash: 20000,
-        stockAlloc: 80,
-        withdrawalAmount: 16800,
-        withdrawalRate: 4.0,
-        inflation: 2.8,
-        flexibleSpending: false,
-        marketReturn: 8.0,
-        marketVariance: 12.0,
-        bondReturn: 2.5,
-        merFee: 0.25,
-        currentIncome: 0,
-        currentIncomeEnd: currentYear + 5,
-        otherIncome: 18000,
-        otherIncomeStart: 2048,
-      });
+      const [results, setResults] = useState({ successRate: 0, medianEnd: 0, p10End: 0, p90End: 0, target100: 0, medianPathData: [], simulationDatasets: [], yearlyAggregates: [], earliestFailureIndex: -1 });
 
-      const [results, setResults] = useState({
-        successRate: 0,
-        medianEnd: 0,
-        p10End: 0,
-        p90End: 0,
-        target100: 0,
-        medianPathData: [],
-        simulationDatasets: [],
-        yearlyAggregates: [],
-        earliestFailureIndex: -1,
-      });
+      const encodeState = (state) => {
+        const shortObj = {};
+        for (const [fullK, val] of Object.entries(state)) { const shortK = KEY_MAP[fullK]; if (shortK) shortObj[shortK] = val; }
+        return LZString.compressToEncodedURIComponent(JSON.stringify(shortObj));
+      };
+
+      const decodeState = (encoded) => {
+        try {
+          const decompressed = LZString.decompressFromEncodedURIComponent(encoded);
+          if (!decompressed) return null;
+          const shortObj = JSON.parse(decompressed);
+          const fullObj = {};
+          for (const [shortK, val] of Object.entries(shortObj)) { const fullK = REVERSE_KEY_MAP[shortK]; if (fullK) fullObj[fullK] = val; }
+          return fullObj;
+        } catch (e) { return null; }
+      };
 
       useEffect(() => {
         setIsClient(true);
-        
         const urlParams = new URLSearchParams(window.location.search);
-        let hasUrlParams = false;
-        const paramsFromUrl = {};
-        
-        for (const [key, value] of urlParams.entries()) {
-          if (key in params) {
-            if (key === 'country') {
-              paramsFromUrl[key] = value;
-            } else {
-              paramsFromUrl[key] = parseFloat(value);
-            }
-            hasUrlParams = true;
-          }
+        let finalParams = { ...defaultParams };
+        let stateLoaded = false;
+        const compressed = urlParams.get('d');
+        if (compressed) {
+          const decoded = decodeState(compressed);
+          if (decoded) { finalParams = { ...finalParams, ...decoded }; stateLoaded = true; }
         }
-
-        if (hasUrlParams) {
-          setParams(p => ({ ...p, ...paramsFromUrl }));
-          return;
+        if (!stateLoaded) {
+          for (const [key, val] of urlParams.entries()) { if (key in defaultParams) { finalParams[key] = key === 'country' ? val : parseFloat(val); stateLoaded = true; } }
         }
-
-        const stored = localStorage.getItem('fireCalcData');
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            setParams(p => ({ ...p, ...parsed.params }));
-            if (parsed.theme) {
-              setTheme(parsed.theme === 'slate' ? 'sage' : parsed.theme);
-            }
-          } catch (e) {
-            console.error("Failed to load settings", e);
-          }
-        } else {
-          const total = params.tfsa + params.rrsp + params.nonreg + params.cash;
-          setParams(p => ({ ...p, withdrawalAmount: Math.round(total * (p.withdrawalRate / 100)) }));
+        if (!stateLoaded) {
+          const stored = localStorage.getItem('fireCalcData');
+          if (stored) { try { const parsed = JSON.parse(stored); finalParams = { ...finalParams, ...parsed.params }; if (parsed.theme) setTheme(parsed.theme === 'slate' ? 'sage' : parsed.theme); } catch (e) {} }
         }
+        setParams(finalParams);
       }, []);
 
-      useEffect(() => {
-        if (!isClient) return;
-        localStorage.setItem('fireCalcData', JSON.stringify({ params, theme }));
-      }, [params, theme, isClient]);
+      useEffect(() => { if (isClient) localStorage.setItem('fireCalcData', JSON.stringify({ params, theme })); }, [params, theme, isClient]);
 
       useEffect(() => {
         if (!isClient) return;
-        const styleId = 'dynamic-theme';
-        let styleTag = document.getElementById(styleId);
-        if (!styleTag) {
-          styleTag = document.createElement('style');
-          styleTag.id = styleId;
-          document.head.appendChild(styleTag);
-        }
+        const styleTag = document.getElementById('dynamic-theme') || document.createElement('style');
+        styleTag.id = 'dynamic-theme'; document.head.appendChild(styleTag);
         styleTag.innerHTML = `:root { ${THEMES[theme] || THEMES['zinc']} }`;
         document.documentElement.setAttribute('data-theme', theme);
       }, [theme, isClient]);
 
       const curLabel = LABELS[params.country || 'CA'];
+      const totalNow = params.tfsa + params.rrsp + params.nonreg + params.cash;
 
       const handleNumChange = (field, val, min, max) => {
         let num = parseFloat(val) || 0;
@@ -519,16 +312,10 @@
 
       const handleCurrencyChange = (field, num) => {
         setParams(p => {
-          const newParams = { ...p, [field]: num };
+          const newParams = { ...p, [field]: Math.round(num) };
           const total = newParams.tfsa + newParams.rrsp + newParams.nonreg + newParams.cash;
-          
-          if (field === 'withdrawalAmount') {
-            num = Math.round(num);
-            newParams.withdrawalAmount = num;
-            if (total > 0) newParams.withdrawalRate = parseFloat(((num / total) * 100).toFixed(4));
-          } else if (['tfsa', 'rrsp', 'nonreg', 'cash'].includes(field)) {
-            if (total > 0) newParams.withdrawalRate = parseFloat(((newParams.withdrawalAmount / total) * 100).toFixed(4));
-          }
+          if (field === 'withdrawalAmount' && total > 0) newParams.withdrawalRate = parseFloat(((num / total) * 100).toFixed(4));
+          else if (['tfsa', 'rrsp', 'nonreg', 'cash'].includes(field) && total > 0) newParams.withdrawalRate = parseFloat(((newParams.withdrawalAmount / total) * 100).toFixed(4));
           return newParams;
         });
       };
@@ -543,19 +330,22 @@
         });
       };
 
-      const handleReRoll = () => {
-        baseSeed = Math.floor(Math.random() * 100000);
-        runSimulation();
-      };
-
       const handleShare = () => {
-        const url = new URL(window.location.href);
-        Object.keys(params).forEach(key => {
-          url.searchParams.set(key, params[key]);
-        });
+        const encoded = encodeState(params);
+        let shareUrl = 'https://cor.win/firecalc.html?d=' + encoded;
+        
+        try {
+          if (window.location.origin !== 'null' && !window.location.protocol.startsWith('blob')) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('d', encoded);
+            shareUrl = url.toString();
+            window.history.replaceState({}, '', url);
+          }
+        } catch (e) {}
+
         const dummy = document.createElement('input');
         document.body.appendChild(dummy);
-        dummy.value = url.toString();
+        dummy.value = shareUrl;
         dummy.select();
         document.execCommand('copy');
         document.body.removeChild(dummy);
@@ -566,483 +356,191 @@
 
       const handleReset = () => {
         localStorage.removeItem('fireCalcData');
-        window.location.reload();
+        setParams(defaultParams);
+        try {
+          if (window.location.origin !== 'null' && !window.location.protocol.startsWith('blob')) {
+            const url = new URL(window.location.href);
+            url.search = '';
+            window.history.replaceState({}, '', url);
+          }
+        } catch (e) {}
       };
 
+      const handleReRoll = () => { baseSeed = Math.floor(Math.random() * 100000); runSimulation(); };
+
       const runSimulation = () => {
-        const {
-          age, years, tfsa, rrsp, nonreg, cash, stockAlloc, withdrawalAmount,
-          inflation, flexibleSpending, marketReturn, marketVariance, bondReturn, merFee,
-          currentIncome, currentIncomeEnd, otherIncome, otherIncomeStart
-        } = params;
-
-        const totalPortfolio = tfsa + rrsp + nonreg + cash;
-        const infl = inflation / 100;
-        const mMean = marketReturn / 100;
-        const mVar = marketVariance / 100;
-        const bRet = bondReturn / 100;
-        const fee = merFee / 100;
-        const sPct = stockAlloc / 100;
-        const bPct = 1 - sPct;
-
-        const investedTotal = tfsa + rrsp + nonreg;
-        const grandTotal = investedTotal + cash;
-        const totalStock = investedTotal * sPct;
-        const totalBond = (investedTotal * bPct) + cash;
-        const wStock = grandTotal > 0 ? totalStock / grandTotal : 0;
-        const wBond = grandTotal > 0 ? totalBond / grandTotal : 0;
-
+        const { age, years, tfsa, rrsp, nonreg, cash, stockAlloc, withdrawalAmount, inflation, flexibleSpending, marketReturn, marketVariance, bondReturn, merFee, currentIncome, currentIncomeEnd, otherIncome, otherIncomeStart } = params;
+        const total = tfsa + rrsp + nonreg + cash;
+        const infl = inflation / 100, mMean = marketReturn / 100, mVar = marketVariance / 100, bRet = bondReturn / 100, fee = merFee / 100, sPct = stockAlloc / 100;
+        const wStock = total > 0 ? (tfsa + rrsp + nonreg) * sPct / total : 0;
+        const wBond = total > 0 ? ((tfsa + rrsp + nonreg) * (1 - sPct) + cash) / total : 0;
         let blendedMean = (wStock * mMean) + (wBond * bRet) - fee;
         const blendedStdDev = wStock * mVar;
-
         const numSimulations = params.simulations;
 
         let seedGen = baseSeed;
-        const marketReturnsMatrix = [];
-        for (let s = 0; s < numSimulations; s++) {
-          const runReturns = [];
-          for (let i = 1; i <= years; i++) {
-            let u = 0, v = 0;
-            while (u === 0) { let x = Math.sin(seedGen++) * 10000; u = x - Math.floor(x); }
-            while (v === 0) { let y = Math.sin(seedGen++) * 10000; v = y - Math.floor(y); }
-            const rnd = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-            runReturns.push(blendedMean + (blendedStdDev * rnd));
-          }
-          marketReturnsMatrix.push(runReturns);
-        }
-
-        let successes = 0;
-        let finalBalances = [];
-        let earliestFailureIndex = -1;
-        let minFailureStep = Infinity;
-        const simulationDatasets = [];
-        let yearlyAggregates = Array(years + 1).fill(null).map(() => ({
-          balances: [], withdrawals: [], incomes: [], growths: []
+        const marketReturnsMatrix = Array.from({ length: numSimulations }, () => Array.from({ length: years }, () => {
+          let u = 0, v = 0; while (u === 0) { let x = Math.sin(seedGen++) * 10000; u = x - Math.floor(x); } while (v === 0) { let y = Math.sin(seedGen++) * 10000; v = y - Math.floor(y); }
+          return blendedMean + (blendedStdDev * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v));
         }));
 
-        for (let s = 0; s < numSimulations; s++) {
-          yearlyAggregates[0].balances.push(totalPortfolio);
-          let simBal = totalPortfolio;
-          let simWithdrawal = withdrawalAmount;
-          let dataPoints = [simBal];
-          let runFailedStep = Infinity;
+        let successes = 0, finalBalances = [], earliestFailureIndex = -1, minFailureStep = Infinity;
+        const simulationDatasets = [];
+        let yearlyAggregates = Array.from({ length: years + 1 }, () => ({ balances: [], withdrawals: [], incomes: [], growths: [] }));
 
+        for (let s = 0; s < numSimulations; s++) {
+          yearlyAggregates[0].balances.push(totalNow);
+          let simBal = totalNow, simWithdrawal = withdrawalAmount, dataPoints = [simBal], runFailedStep = Infinity;
           for (let i = 1; i <= years; i++) {
             const year = currentYear + i;
-            const randomReturn = marketReturnsMatrix[s][i - 1];
-            
             let simIncome = 0;
             if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
             if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
-
-            let net = simIncome - simWithdrawal;
-            let investable = Math.max(0, simBal + net);
-            let growth = investable * randomReturn;
+            let investable = Math.max(0, simBal + simIncome - simWithdrawal);
+            let growth = investable * marketReturnsMatrix[s][i - 1];
             let end = investable + growth;
-
-            if (end <= 0) {
-              end = 0;
-              if (runFailedStep === Infinity) runFailedStep = i;
-            }
-
+            if (end <= 0) { end = 0; if (runFailedStep === Infinity) runFailedStep = i; }
             yearlyAggregates[i].balances.push(end);
             yearlyAggregates[i].withdrawals.push(simWithdrawal);
             yearlyAggregates[i].incomes.push(simIncome);
             yearlyAggregates[i].growths.push(growth);
-
-            let nextWithdrawal = simWithdrawal;
-            if (flexibleSpending && randomReturn < 0) {
-              nextWithdrawal = simWithdrawal;
-            } else {
-              nextWithdrawal = simWithdrawal * (1 + infl);
-            }
-
+            if (!(flexibleSpending && marketReturnsMatrix[s][i - 1] < 0)) simWithdrawal *= (1 + infl);
             simBal = end;
-            simWithdrawal = nextWithdrawal;
-            
             if (dataPoints[dataPoints.length - 1] > 0) dataPoints.push(simBal);
           }
-
           if (runFailedStep === Infinity) successes++;
           finalBalances.push(simBal);
-          
-          if (runFailedStep < minFailureStep) {
-            minFailureStep = runFailedStep;
-            earliestFailureIndex = s;
-          }
-
-          const isLight = theme === 'light';
-          simulationDatasets.push({
-            label: `Sim ${s}`,
-            data: dataPoints,
-            borderColor: isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)',
-            borderWidth: 1,
-            pointRadius: 0,
-            fill: false,
-            tension: 0.4,
-            order: 10
-          });
+          if (runFailedStep < minFailureStep) { minFailureStep = runFailedStep; earliestFailureIndex = s; }
+          simulationDatasets.push({ label: `Sim ${s}`, data: dataPoints, pointRadius: 0, fill: false, tension: 0.4 });
         }
 
-        if (earliestFailureIndex !== -1) {
-          simulationDatasets[earliestFailureIndex].borderColor = 'rgba(244, 63, 94, 0.8)';
-          simulationDatasets[earliestFailureIndex].borderWidth = 2;
-          simulationDatasets[earliestFailureIndex].order = 2;
-        }
-
-        const medianVal = getMedian(finalBalances);
         const sortedBalances = [...finalBalances].sort((a, b) => a - b);
-        const p10Val = sortedBalances[Math.floor(sortedBalances.length * 0.1)];
-        const p90Val = sortedBalances[Math.floor(sortedBalances.length * 0.9)];
-
-        const medianPathData = [];
-        for (let i = 0; i <= years; i++) {
-          medianPathData.push(getMedian(yearlyAggregates[i].balances));
+        const medianPathData = yearlyAggregates.map(y => getMedian(y.balances));
+        
+        let target100 = total, low = 0, high = 50000000;
+        for (let step = 0; step < 30; step++) {
+          let mid = (low + high) / 2, allSuccess = true;
+          for (let s = 0; s < numSimulations; s++) {
+            let simBal = mid, simWithdrawal = withdrawalAmount, runFailed = false;
+            for (let i = 1; i <= years; i++) {
+              let simIncome = 0;
+              if (currentYear + i >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
+              if (currentYear + i <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
+              let end = Math.max(0, simBal + simIncome - simWithdrawal) * (1 + marketReturnsMatrix[s][i - 1]);
+              if (end <= 0) { runFailed = true; break; }
+              if (!(flexibleSpending && marketReturnsMatrix[s][i - 1] < 0)) simWithdrawal *= (1 + infl);
+              simBal = end;
+            }
+            if (runFailed) { allSuccess = false; break; }
+          }
+          if (allSuccess) { target100 = mid; high = mid; } else { low = mid; }
         }
 
-        let target100 = totalPortfolio;
-        if (successes < numSimulations) {
-          let low = totalPortfolio;
-          let high = 50000000; 
-          let bestFound = high;
-          
-          for (let step = 0; step < 40; step++) {
-            let mid = (low + high) / 2;
-            let allSuccess = true;
-            
-            for (let s = 0; s < numSimulations; s++) {
-              let simBal = mid;
-              let simWithdrawal = withdrawalAmount;
-              let runFailed = false;
-
-              for (let i = 1; i <= years; i++) {
-                const year = currentYear + i;
-                const randomReturn = marketReturnsMatrix[s][i - 1];
-                
-                let simIncome = 0;
-                if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
-                if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
-
-                let net = simIncome - simWithdrawal;
-                let investable = Math.max(0, simBal + net);
-                let growth = investable * randomReturn;
-                let end = investable + growth;
-
-                if (end <= 0) {
-                  runFailed = true;
-                  break;
-                }
-
-                if (flexibleSpending && randomReturn < 0) {
-                  simWithdrawal = simWithdrawal;
-                } else {
-                  simWithdrawal = simWithdrawal * (1 + infl);
-                }
-                simBal = end;
-              }
-              
-              if (runFailed) {
-                allSuccess = false;
-                break;
-              }
-            }
-            
-            if (allSuccess) {
-              bestFound = mid;
-              high = mid;
-            } else {
-              low = mid;
-            }
-          }
-          target100 = bestFound;
-        } else {
-          let low = 0;
-          let high = totalPortfolio;
-          let bestFound = high;
-          
-          for (let step = 0; step < 40; step++) {
-            let mid = (low + high) / 2;
-            let allSuccess = true;
-            
-            for (let s = 0; s < numSimulations; s++) {
-              let simBal = mid;
-              let simWithdrawal = withdrawalAmount;
-              let runFailed = false;
-
-              for (let i = 1; i <= years; i++) {
-                const year = currentYear + i;
-                const randomReturn = marketReturnsMatrix[s][i - 1];
-                
-                let simIncome = 0;
-                if (year >= otherIncomeStart) simIncome += otherIncome * Math.pow(1 + infl, i);
-                if (year <= currentIncomeEnd) simIncome += currentIncome * Math.pow(1 + infl, i);
-
-                let net = simIncome - simWithdrawal;
-                let investable = Math.max(0, simBal + net);
-                let growth = investable * randomReturn;
-                let end = investable + growth;
-
-                if (end <= 0) {
-                  runFailed = true;
-                  break;
-                }
-
-                if (flexibleSpending && randomReturn < 0) {
-                  simWithdrawal = simWithdrawal;
-                } else {
-                  simWithdrawal = simWithdrawal * (1 + infl);
-                }
-                simBal = end;
-              }
-              
-              if (runFailed) {
-                allSuccess = false;
-                break;
-              }
-            }
-            
-            if (allSuccess) {
-              bestFound = mid;
-              high = mid;
-            } else {
-              low = mid;
-            }
-          }
-          target100 = bestFound;
-        }
-
-        setResults({
-          successRate: Math.round((successes / numSimulations) * 100),
-          medianEnd: medianVal,
-          p10End: p10Val,
-          p90End: p90Val,
-          target100: target100,
-          medianPathData,
-          simulationDatasets,
-          yearlyAggregates,
-          earliestFailureIndex,
+        const exactSuccess = (successes / numSimulations) * 100;
+        setResults({ 
+          successRate: (exactSuccess > 99 && exactSuccess < 100) ? parseFloat(exactSuccess.toFixed(1)) : Math.round(exactSuccess), 
+          medianEnd: getMedian(finalBalances), p10End: sortedBalances[Math.floor(numSimulations * 0.1)], p90End: sortedBalances[Math.floor(numSimulations * 0.9)], 
+          target100, medianPathData, simulationDatasets, yearlyAggregates, earliestFailureIndex 
         });
       };
 
-      useEffect(() => {
-        if (isClient) runSimulation();
-      }, [params, isClient]);
+      const getAdvice = () => {
+        const { successRate } = results;
+        const { stockAlloc, merFee, flexibleSpending, cash } = params;
+        const advice = [];
+        if (successRate >= 95) advice.push({ type: 'success', text: "Strategy robust. Current plan shows a high probability of success." });
+        else if (successRate < 70) advice.push({ type: 'danger', text: "Probability of failure is high. Consider reducing spend or increasing equity exposure." });
+        if (merFee > 0.5) advice.push({ type: 'warning', text: "Portfolio drag detected due to elevated management fees. Utilizing lower-fee investment options can significantly extend portfolio longevity." });
+        if (stockAlloc < 50 && successRate < 90) advice.push({ type: 'warning', text: "Conservative asset mix may be creating equity drag preventing long-term sustainability." });
+        if (cash > totalNow * 0.15) advice.push({ type: 'warning', text: "High cash position detected. Inflation may erode purchasing power faster than it can grow." });
+        if (!flexibleSpending && successRate < 95) advice.push({ type: 'info', text: "Enable Flex Spend to skip inflation raises in down years, significantly improving success rates." });
+        return advice;
+      };
+
+      useEffect(() => { if (isClient) runSimulation(); }, [params, isClient]);
 
       useEffect(() => {
         if (!isClient || !chartRef.current || results.simulationDatasets.length === 0) return;
-
-        if (chartInstance.current) {
-          chartInstance.current.destroy();
-          chartInstance.current = null;
-        }
-
-        const ctx = chartRef.current.getContext('2d');
-        const labels = Array.from({ length: params.years + 1 }, (_, i) => currentYear + i);
-        const yMax = Math.max(results.p90End, (params.tfsa + params.rrsp + params.nonreg + params.cash)) * 1.25;
-
+        if (chartInstance.current) chartInstance.current.destroy();
         const style = getComputedStyle(document.documentElement);
-        const getVar = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
-        
-        const gridColorRaw = getVar('--chart-grid', 'rgba(255,255,255,0.1)');
-        const textColorRaw = getVar('--chart-text', '#94a3b8');
-        
-        const getColor = (val) => {
-            if (val && !val.startsWith('#') && !val.startsWith('hsl') && !val.startsWith('rgba')) {
-                return `hsl(${val})`;
-            }
-            return val;
-        };
-
-        const gridColor = getColor(gridColorRaw);
-        const textColor = getColor(textColorRaw);
-        const primaryColor = getColor(getVar('--primary', '75 100% 50%'));
-        const bgCard = getColor(getVar('--card', '240 10% 9%'));
-        const borderCard = getColor(getVar('--border', '240 4% 16%'));
-        const foregroundColor = getColor(getVar('--foreground', '#fff'));
-        const mutedForegroundColor = getColor(getVar('--muted-foreground', '#a1a1aa'));
-
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light' || theme === 'light';
-        const defaultLineColor = isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)';
-        const failLineColor = 'rgba(244, 63, 94, 0.8)';
-
-        const styledDatasets = results.simulationDatasets.map((ds, idx) => ({
-          ...ds,
-          borderColor: idx === results.earliestFailureIndex ? failLineColor : defaultLineColor,
-          borderWidth: idx === results.earliestFailureIndex ? 2 : 1,
-          order: idx === results.earliestFailureIndex ? 2 : 10
-        }));
-
-        chartInstance.current = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Median Market Path',
-              data: results.medianPathData,
-              borderColor: primaryColor,
-              borderWidth: 3,
-              pointRadius: 0,
-              tension: 0.4,
-              order: 1
-            }, ...styledDatasets]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: bgCard,
-                titleColor: foregroundColor,
-                bodyColor: mutedForegroundColor,
-                borderColor: borderCard,
-                borderWidth: 1,
-                padding: 12,
-                callbacks: {
-                  title: (items) => `${items[0].label} (Age: ${params.age + (parseInt(items[0].label) - currentYear)})`,
-                  label: (context) => {
-                    if (context.dataset.label === 'Median Market Path') return `Median: ${formatCurrency(context.raw, curLabel.currency, curLabel.locale)}`;
-                    if (context.dataset.label === 'Earliest Failure') return `Early Fail: ${formatCurrency(context.raw, curLabel.currency, curLabel.locale)}`;
-                    return '';
-                  }
-                }
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: yMax,
-                grid: { color: gridColor },
-                ticks: {
-                  color: textColor,
-                  callback: (value, index, values) => {
-                    if (index === values.length - 1) return null;
-                    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-                    if (value >= 1e6) return `$${(value / 1e6).toFixed(0)}M`;
-                    if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}k`;
-                    return `$${value}`;
-                  }
-                }
-              },
-              x: {
-                grid: { color: gridColor },
-                ticks: { color: textColor }
-              }
-            },
-            interaction: { mode: 'nearest', axis: 'x', intersect: false }
-          }
-        });
-
-        return () => {
-          if (chartInstance.current) {
-            chartInstance.current.destroy();
-            chartInstance.current = null;
-          }
-        };
-      }, [results, theme, params.years, params.age, currentYear, isClient]);
+        const getV = (n, f) => style.getPropertyValue(n).trim() || f;
+        const getColor = (v) => (v && !v.startsWith('#') && !v.startsWith('hsl') && !v.startsWith('rgba')) ? `hsl(${v})` : v;
+        const primaryColor = getColor(getV('--primary', '75 100% 50%')), bgCard = getColor(getV('--card', '240 10% 9%')), borderCard = getColor(getV('--border', '240 4% 16%')), foregroundColor = getColor(getV('--foreground', '#fff')), mutedForegroundColor = getColor(getV('--muted-foreground', '#a1a1aa'));
+        const isL = theme === 'light', defC = isL ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.05)', failC = 'rgba(244, 63, 94, 0.8)';
+        const styledDS = results.simulationDatasets.map((ds, idx) => ({ ...ds, borderColor: idx === results.earliestFailureIndex ? failC : defC, borderWidth: idx === results.earliestFailureIndex ? 2 : 1, order: idx === results.earliestFailureIndex ? 2 : 10 }));
+        chartInstance.current = new Chart(chartRef.current.getContext('2d'), { type: 'line', data: { labels: Array.from({ length: params.years + 1 }, (_, i) => currentYear + i), datasets: [{ label: 'Median', data: results.medianPathData, borderColor: primaryColor, borderWidth: 3, pointRadius: 0, tension: 0.4, order: 1 }, ...styledDS] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: bgCard, titleColor: foregroundColor, bodyColor: mutedForegroundColor, borderColor: borderCard, borderWidth: 1, padding: 12, callbacks: { title: (items) => `${items[0].label} (Age: ${params.age + (parseInt(items[0].label) - currentYear)})`, label: (context) => context.dataset.label === 'Median' ? `Median: ${formatCurrency(context.raw, curLabel.currency, curLabel.locale)}` : context.dataset.label === 'Earliest Failure' ? `Early Fail: ${formatCurrency(context.raw, curLabel.currency, curLabel.locale)}` : '' } } }, scales: { y: { beginAtZero: true, max: Math.max(results.p90End, totalNow) * 1.25, grid: { color: getColor(getV('--chart-grid', 'rgba(255,255,255,0.05)')) }, ticks: { color: getColor(getV('--chart-text', '#94a3b8')), callback: (v) => `${curLabel.symbol}${v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'k' : v}` } }, x: { grid: { color: getColor(getV('--chart-grid', 'rgba(255,255,255,0.05)')) }, ticks: { color: getColor(getV('--chart-text', '#94a3b8')) } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false } } });
+      }, [results, theme, isClient, params.years, params.age]);
 
       if (!isClient) return null;
 
-      const totalPortfolio = params.tfsa + params.rrsp + params.nonreg + params.cash;
-
       return (
         <div className="flex min-h-screen lg:h-screen w-full flex-col lg:overflow-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans">
-          
           <header className="sticky top-0 lg:static flex h-16 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-6 bg-[hsl(var(--card))]/80 backdrop-blur z-20">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]">
-                <Leaf className="h-4 w-4 text-[hsl(var(--primary))]" />
-              </div>
-              <div>
-                <h1 className="text-sm font-bold tracking-tight">{curLabel.title}</h1>
-                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p>
-              </div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]"><Leaf className="h-4 w-4 text-[hsl(var(--primary))]" /></div>
+              <div><h1 className="text-sm font-bold tracking-tight">{curLabel.title}</h1><p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p></div>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-2">
               <label className="hidden sm:block text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
-              <select 
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm transition-colors hover:border-[hsl(var(--primary))/50]"
-              >
-                <option value="zinc">Zinc (Dark)</option>
-                <option value="sage">Sage (Dark)</option>
-                <option value="light">Light</option>
+              <select value={theme} onChange={(e) => setTheme(e.target.value)} className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm hover:border-[hsl(var(--primary))/50]">
+                <option value="zinc">Zinc (Dark)</option><option value="sage">Sage (Dark)</option><option value="light">Light</option>
               </select>
             </div>
           </header>
 
           <div className="flex flex-1 flex-col lg:flex-row lg:overflow-hidden">
-            
             <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] lg:overflow-y-auto custom-scrollbar p-6 space-y-6">
-              
               <CollapsibleCard title="Setup" icon={User}>
                 <div className="space-y-4">
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1">Region</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Region</label>
                     <div className="flex bg-[hsl(var(--muted))] rounded-lg p-1 shadow-sm w-full">
-                      <button onClick={() => setParams(p => ({ ...p, country: 'CA' }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors flex justify-center items-center gap-1 ${params.country === 'CA' ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
-                        🇨🇦 Canada
-                      </button>
-                      <button onClick={() => setParams(p => ({ ...p, country: 'US' }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors flex justify-center items-center gap-1 ${params.country === 'US' ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
-                        🇺🇸 USA
-                      </button>
+                      {['US', 'CA', 'EU'].map(c => (
+                        <button key={c} onClick={() => setParams(p => ({ ...p, country: c }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${params.country === c ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
+                          {c === 'US' ? '🇺🇸 USA' : c === 'CA' ? '🇨🇦 Canada' : '🇪🇺 EU'}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  <FormInput label="Current Age" type="number" value={params.age} min={1} max={100} onChange={(val) => handleNumChange('age', val, 1, 100)} />
-                  <FormInput label="Years to Project" type="number" value={params.years} min={1} max={100} onChange={(val) => handleNumChange('years', val, 1, 100)} />
-                  <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(val) => handleNumChange('simulations', val, 100, 1000)} tooltip="Higher values improve accuracy but decrease performance." lazy={true} />
+                  <FormInput label="Current Age" type="number" value={params.age} min={1} max={100} onChange={(v) => handleNumChange('age', v, 1, 100)} />
+                  <FormInput label="Years to Project" type="number" value={params.years} min={1} max={100} onChange={(v) => handleNumChange('years', v, 1, 100)} />
+                  <FormInput label="Simulations" type="number" value={params.simulations} min={100} max={1000} onChange={(v) => handleNumChange('simulations', v, 100, 1000)} lazy={true} />
                 </div>
               </CollapsibleCard>
 
               <CollapsibleCard title={`Assets (${curLabel.currency})`} icon={Coins}>
                 <div className="space-y-4">
-                  <CurrencyInput label={curLabel.tfsa} value={params.tfsa} tooltip={curLabel.tfsaTooltip} currency={curLabel.currency} locale={curLabel.locale}
-                    onChange={(val) => handleCurrencyChange('tfsa', val)} max={5000000} />
-                  <CurrencyInput label={curLabel.rrsp} value={params.rrsp} tooltip={curLabel.rrspTooltip} currency={curLabel.currency} locale={curLabel.locale}
-                    onChange={(val) => handleCurrencyChange('rrsp', val)} max={10000000} />
-                  <CurrencyInput label={curLabel.nonreg} value={params.nonreg} tooltip={curLabel.nonregTooltip} currency={curLabel.currency} locale={curLabel.locale}
-                    onChange={(val) => handleCurrencyChange('nonreg', val)} max={10000000} />
-                  <div className="h-px w-full bg-[hsl(var(--border))] my-4" />
-                  <CurrencyInput label="Cash / Fixed ($)" value={params.cash} tooltip="Excluded from equity mix" currency={curLabel.currency} locale={curLabel.locale}
-                    onChange={(val) => handleCurrencyChange('cash', val)} max={10000000} />
-                  
-                  <div className="pt-2">
-                    <Slider label="Equity Mix" value={params.stockAlloc} min={0} max={100} displayValue={`${params.stockAlloc}% Stocks / ${100 - params.stockAlloc}% Bonds`} onChange={(val) => handleNumChange('stockAlloc', val)} />
-                  </div>
+                  <CurrencyInput label={curLabel.tfsa} value={params.tfsa} tooltip={curLabel.tfsaTooltip} currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('tfsa', v)} max={5000000} />
+                  <CurrencyInput label={curLabel.rrsp} value={params.rrsp} tooltip={curLabel.rrspTooltip} currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('rrsp', v)} max={10000000} />
+                  <CurrencyInput label={curLabel.nonreg} value={params.nonreg} tooltip={curLabel.nonregTooltip} currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('nonreg', v)} max={10000000} />
+                  <div className="h-px w-full bg-[hsl(var(--border))] my-4" /><CurrencyInput label={`Cash / Fixed (${curLabel.symbol})`} value={params.cash} tooltip="Excluded from equity mix" currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('cash', v)} max={10000000} />
+                  <div className="pt-2"><Slider label="Equity Mix" value={params.stockAlloc} min={0} max={100} displayValue={`${params.stockAlloc}% Stocks / ${100 - params.stockAlloc}% Bonds`} onChange={(v) => handleNumChange('stockAlloc', v)} /></div>
                 </div>
               </CollapsibleCard>
 
               <CollapsibleCard title="Assumptions" icon={Sliders}>
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4 relative">
-                    <CurrencyInput label="Annual Spend ($)" value={params.withdrawalAmount} tooltip="Master Value. Target spending in today's dollars." currency={curLabel.currency} locale={curLabel.locale}
-                      onChange={(val) => handleCurrencyChange('withdrawalAmount', val, totalPortfolio * 0.5)} />
-                    <FormInput label="Rate (%)" type="number" step="0.01" value={params.withdrawalRate} tooltip="Calculated initial withdrawal rate."
-                      onChange={(val) => handleRateChange(val)} min={0} max={50} />
+                    <div className="absolute top-[34px] left-[50%] -translate-x-[50%] z-10 text-[hsl(var(--primary))/50] hidden sm:block"><Link2 className="h-3.5 w-3.5" /></div>
+                    <CurrencyInput label={`Annual Spend (${curLabel.symbol})`} value={params.withdrawalAmount} tooltip="Total spending in today's dollars." currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('withdrawalAmount', v, totalNow * 0.5)} />
+                    <FormInput label="Rate (%)" type="number" step="0.0001" value={params.withdrawalRate} tooltip="Calculated initial withdrawal rate." onChange={handleRateChange} min={0} max={50} />
                   </div>
-                  
                   <div className="grid grid-cols-2 gap-4 items-end">
-                    <FormInput label="Inflation (%)" type="number" step="0.1" value={params.inflation} onChange={(val) => handleNumChange('inflation', val, 0, 200)} />
+                    <FormInput label="Inflation (%)" type="number" step="0.1" value={params.inflation} onChange={(v) => handleNumChange('inflation', v, 0, 200)} />
                     <div className="flex items-center pb-2">
                       <label className="flex items-center cursor-pointer">
                         <input type="checkbox" checked={params.flexibleSpending} onChange={(e) => setParams({ ...params, flexibleSpending: e.target.checked })} className="sr-only peer" />
-                        <div className="relative w-9 h-5 bg-[hsl(var(--muted))] rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[hsl(var(--primary))] peer-checked:shadow-[0_0_10px_hsl(var(--primary)/0.4)]"></div>
+                        <div className="relative w-9 h-5 bg-[hsl(var(--muted))] rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[hsl(var(--primary))] shadow-sm"></div>
                         <span className="ms-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">Flex Spend</span>
-                      </label>
-                      <Tooltip text="Skip inflation raise in down years" />
+                      </label><Tooltip text="Skip inflation raise in down years" />
                     </div>
                   </div>
-
                   <div className="h-px w-full bg-[hsl(var(--border))]" />
-
                   <div className="grid grid-cols-2 gap-4">
-                    <FormInput label="Stock Return (%)" type="number" step="0.1" value={params.marketReturn} onChange={(val) => handleNumChange('marketReturn', val, 0, 100)} />
-                    <FormInput label="Variance (%)" type="number" step="0.1" value={params.marketVariance} onChange={(val) => handleNumChange('marketVariance', val, 0, 100)} tooltip="Std Dev (12-13% typical)" />
-                    <FormInput label="Fixed Income (%)" type="number" step="0.1" value={params.bondReturn} onChange={(val) => handleNumChange('bondReturn', val, 0, 100)} tooltip="Return for Bonds/Cash" />
-                    <FormInput label="MER Fee (%)" type="number" step="0.01" value={params.merFee} onChange={(val) => handleNumChange('merFee', val, 0, 50)} tooltip="Annual expense ratio" />
+                    <FormInput label="Stock Return (%)" type="number" step="0.1" value={params.marketReturn} onChange={(v) => handleNumChange('marketReturn', v, 0, 100)} />
+                    <FormInput label="Variance (%)" type="number" step="0.1" value={params.marketVariance} onChange={(v) => handleNumChange('marketVariance', v, 0, 100)} tooltip="Std Dev (12-13% typical)" />
+                    <FormInput label="Fixed Income (%)" type="number" step="0.1" value={params.bondReturn} onChange={(v) => handleNumChange('bondReturn', v, 0, 100)} />
+                    <FormInput label="MER Fee (%)" type="number" step="0.01" value={params.merFee} onChange={(v) => handleNumChange('merFee', v, 0, 50)} />
                   </div>
                 </div>
               </CollapsibleCard>
@@ -1050,123 +548,93 @@
               <CollapsibleCard title="Future Income" icon={Banknote}>
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-                    <div className="sm:col-span-3">
-                      <CurrencyInput label="Income ($)" value={params.currentIncome} tooltip="Income from full or part-time work, or side hustles" currency={curLabel.currency} locale={curLabel.locale}
-                        onChange={(val) => handleCurrencyChange('currentIncome', val)} max={100000000} />
-                    </div>
-                    <div className="sm:col-span-2 pb-1">
-                      <Slider label="Until" value={params.currentIncomeEnd} min={currentYear} max={currentYear + params.years} onChange={(val) => handleNumChange('currentIncomeEnd', val)} />
-                    </div>
+                    <div className="sm:col-span-3"><CurrencyInput label={`Income (${curLabel.symbol})`} value={params.currentIncome} tooltip="Active employment or other sources" currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('currentIncome', v)} max={100000000} /></div>
+                    <div className="sm:col-span-2 pb-1"><Slider label="Until" value={params.currentIncomeEnd} min={currentYear + 1} max={currentYear + params.years} onChange={(v) => handleNumChange('currentIncomeEnd', v)} /></div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-                    <div className="sm:col-span-3">
-                      <CurrencyInput label={curLabel.govPension} value={params.otherIncome} tooltip={curLabel.govPensionTooltip} currency={curLabel.currency} locale={curLabel.locale}
-                        onChange={(val) => handleCurrencyChange('otherIncome', val)} max={1000000} />
-                    </div>
-                    <div className="sm:col-span-2 pb-1">
-                      <Slider label="Starts" value={params.otherIncomeStart} min={currentYear} max={currentYear + params.years} onChange={(val) => handleNumChange('otherIncomeStart', val)} />
-                    </div>
+                    <div className="sm:col-span-3"><CurrencyInput label={curLabel.govPension} value={params.otherIncome} tooltip={curLabel.govPensionTooltip} currency={curLabel.currency} locale={curLabel.locale} onChange={(v) => handleCurrencyChange('otherIncome', v)} max={1000000} /></div>
+                    <div className="sm:col-span-2 pb-1"><Slider label="Starts" value={params.otherIncomeStart} min={currentYear + 1} max={currentYear + params.years} onChange={(v) => handleNumChange('otherIncomeStart', v)} /></div>
                   </div>
                 </div>
               </CollapsibleCard>
 
               <div className="flex flex-col gap-3 pt-2">
-                <button onClick={handleReRoll} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--primary-gradient)] text-[hsl(var(--primary-foreground))] font-bold transition-opacity hover:opacity-90 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.6)] border-0">
-                  <Dices className="h-4 w-4" /> Recalculate (new seed)
-                </button>
+                <button onClick={handleReRoll} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--primary-gradient)] text-[hsl(var(--primary-foreground))] font-bold shadow-lg border-0 hover:opacity-90"><Dices className="h-4 w-4" /> Recalculate (new seed)</button>
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={handleShare} className="h-9 w-full flex items-center justify-center gap-2 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">
-                    <Share2 className="h-3 w-3" /> {shareText}
-                  </button>
-                  <button onClick={handleReset} className="h-9 w-full rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">
-                    Reset Defaults
-                  </button>
+                  <button onClick={handleShare} className="h-9 w-full flex items-center justify-center gap-2 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm"><Share2 className="h-3 w-3" /> {shareText}</button>
+                  <button onClick={handleReset} className="h-9 w-full rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] text-xs font-semibold transition-colors hover:bg-[hsl(var(--border))] hover:text-[hsl(var(--primary))] shadow-sm">Reset Defaults</button>
                 </div>
               </div>
             </aside>
 
             <main className="flex-1 bg-[hsl(var(--background))] custom-scrollbar p-4 lg:p-8 lg:overflow-y-auto relative">
               <div className="mx-auto max-w-6xl space-y-6">
-                
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                  <StatCard title="Total Portfolio" value={formatCurrency(totalPortfolio, curLabel.currency, curLabel.locale)} subtitle="Current value" isGradient={true} highlight={true} />
+                  <StatCard title="Total Portfolio" value={formatCurrency(totalNow, curLabel.currency, curLabel.locale)} subtitle="Current value" isGradient={true} highlight={true} />
                   <StatCard title="Required for 100%" value={formatCurrency(results.target100, curLabel.currency, curLabel.locale)} subtitle="Portfolio needed today" />
-                  <StatCard title="Success Rate" value={`${results.successRate}%`} subtitle="Simulations > $0" highlight={results.successRate > 90} />
-                  <StatCard title="Median Balance" value={formatCurrency(results.medianEnd, curLabel.currency, curLabel.locale)} subtitle="50th Percentile scenario" />
-                  <StatCard title="Worst Decile (10th)" value={formatCurrency(results.p10End, curLabel.currency, curLabel.locale)} subtitle="Unlucky scenario" />
-                  <StatCard title="Best Decile (90th)" value={formatCurrency(results.p90End, curLabel.currency, curLabel.locale)} subtitle="Lucky scenario" />
+                  <StatCard title="Success Rate" value={`${results.successRate}%`} highlight={results.successRate > 90} />
+                  <StatCard title="Median Balance" value={formatCurrency(results.medianEnd, curLabel.currency, curLabel.locale)} />
+                  <StatCard title="Worst Decile (10th)" value={formatCurrency(results.p10End, curLabel.currency, curLabel.locale)} />
+                  <StatCard title="Best Decile (90th)" value={formatCurrency(results.p90End, curLabel.currency, curLabel.locale)} />
                 </div>
+                
+                <div className="space-y-6">
+                  <CollapsibleCard title="Portfolio Projection" icon={Leaf}>
+                    <div className="mb-4"><p className="text-xs font-medium text-[hsl(var(--muted-foreground))]">{params.simulations} Monte Carlo iterations based on applied volatility</p></div>
+                    <div className="h-[400px] w-full relative"><canvas ref={chartRef}></canvas></div>
+                  </CollapsibleCard>
 
-                <Card>
-                  <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h3 className="font-bold text-[hsl(var(--foreground))] text-lg tracking-tight">Portfolio Projection</h3>
-                      <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">{params.simulations} Monte Carlo iterations based on applied volatility</p>
+                  <CollapsibleCard title="Strategy Guidance" icon={ShieldCheck}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getAdvice().map((adv, idx) => (
+                        <div key={idx} className={`flex gap-3 p-3 rounded-xl border text-xs leading-relaxed ${adv.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : adv.type === 'danger' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : adv.type === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-sky-500/10 border-sky-500/20 text-sky-500'}`}>
+                          <div className="shrink-0 mt-0.5"><Info className="h-3 w-3" /></div>
+                          <div>{adv.text}</div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <div className="h-[400px] w-full relative">
-                    <canvas ref={chartRef}></canvas>
-                  </div>
-                </Card>
+                  </CollapsibleCard>
 
-                <Card className="flex flex-col h-[500px] overflow-hidden p-0 border border-[hsl(var(--border))]">
-                  <div className="p-5 border-b border-[hsl(var(--border))] flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-[hsl(var(--card))]">
-                    <div>
-                      <h3 className="font-bold text-[hsl(var(--foreground))] text-lg tracking-tight">Detailed Projection</h3>
-                      <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] mt-1">Median scenario year-over-year breakdown.</p>
-                    </div>
-                    <div className="rounded-lg border border-[hsl(var(--primary))/30] bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider w-fit">
-                      {curLabel.tableNominal}
-                    </div>
-                  </div>
-                  <div className="flex-1 overflow-auto custom-scrollbar">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                      <thead className="sticky top-0 bg-[hsl(var(--background))] shadow-sm z-10">
-                        <tr className="text-xs text-[hsl(var(--muted-foreground))] font-bold uppercase tracking-wider">
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] border-t-2 border-t-transparent hover:border-t-[hsl(var(--primary))] transition-colors">Year</th>
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))]">Age</th>
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Start Bal</th>
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Withdraw</th>
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Income</th>
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right">Growth</th>
-                          <th className="px-5 py-3 border-b border-[hsl(var(--border))] text-right text-[hsl(var(--primary))]">End Bal</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
-                        {results.medianPathData.map((bal, idx) => {
-                          if (idx === 0) return null;
-                          const agg = results.yearlyAggregates[idx];
-                          if(!agg) return null;
-                          
-                          const prevBal = results.medianPathData[idx - 1];
-                          const withdraw = getMedian(agg.withdrawals);
-                          const income = getMedian(agg.incomes);
-                          const growth = getMedian(agg.growths);
-                          
-                          return (
-                            <tr key={idx} className="hover:bg-[hsl(var(--muted))] transition-colors">
-                              <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{currentYear + idx}</td>
-                              <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{params.age + idx}</td>
-                              <td className="px-5 py-3 text-right font-mono">{formatCurrency(prevBal, curLabel.currency, curLabel.locale)}</td>
-                              <td className="px-5 py-3 text-right font-mono text-rose-500 font-medium">-{formatCurrency(withdraw, curLabel.currency, curLabel.locale)}</td>
-                              <td className="px-5 py-3 text-right font-mono text-[hsl(var(--primary))] font-medium">+{formatCurrency(income, curLabel.currency, curLabel.locale)}</td>
-                              <td className="px-5 py-3 text-right font-mono text-emerald-500 font-medium">{formatCurrency(growth, curLabel.currency, curLabel.locale)}</td>
-                              <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(bal, curLabel.currency, curLabel.locale)}</td>
+                  <CollapsibleCard title="Detailed Projection" icon={Sliders}>
+                    <div className="p-0 border border-[hsl(var(--border))] rounded-xl overflow-hidden flex flex-col">
+                      <div className="p-5 border-b border-[hsl(var(--border))] flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-[hsl(var(--card))]">
+                        <div><p className="text-xs font-medium text-[hsl(var(--muted-foreground))]">Median scenario year-over-year breakdown.</p></div>
+                        <div className="rounded-lg border border-[hsl(var(--primary))/30] bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider w-fit">{curLabel.tableNominal}</div>
+                      </div>
+                      <div className="max-h-[500px] overflow-auto custom-scrollbar bg-[hsl(var(--background))]">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                          <thead className="sticky top-0 bg-[hsl(var(--background))] shadow-sm z-10 font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] text-xs">
+                            <tr className="border-b border-[hsl(var(--border))]">
+                              <th className="px-5 py-3">Year</th><th className="px-5 py-3">Age</th><th className="px-5 py-3 text-right">Start Bal</th><th className="px-5 py-3 text-right">Withdraw</th><th className="px-5 py-3 text-right">Income</th><th className="px-5 py-3 text-right">Growth</th><th className="px-5 py-3 text-right text-[hsl(var(--primary))]">End Bal</th>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </Card>
-
-                <div className="text-center text-xs text-[hsl(var(--muted-foreground))] pb-8 space-y-1">
-                  <p>Disclaimer: Educational purposes only. Gaussian distribution used for Monte Carlo.</p>
-                  <p>Note: Values are exclusive of taxes. Investment fees deducted. Actual tax liability depends on jurisdiction.</p>
+                          </thead>
+                          <tbody className="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                            {results.medianPathData.map((bal, idx) => {
+                              if (idx === 0) return null;
+                              const agg = results.yearlyAggregates[idx];
+                              if(!agg) return null;
+                              const prevBal = results.medianPathData[idx - 1], withdraw = getMedian(agg.withdrawals), income = getMedian(agg.incomes), growth = getMedian(agg.growths);
+                              return (
+                                <tr key={idx} className="hover:bg-[hsl(var(--muted))/30] transition-colors">
+                                  <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{currentYear + idx}</td>
+                                  <td className="px-5 py-3 text-[hsl(var(--muted-foreground))] font-medium">{params.age + idx}</td>
+                                  <td className="px-5 py-3 text-right font-mono">{formatCurrency(prevBal, curLabel.currency, curLabel.locale)}</td>
+                                  <td className="px-5 py-3 text-right font-mono text-rose-500 font-medium">-{formatCurrency(withdraw, curLabel.currency, curLabel.locale)}</td>
+                                  <td className="px-5 py-3 text-right font-mono text-[hsl(var(--primary))] font-medium">+{formatCurrency(income, curLabel.currency, curLabel.locale)}</td>
+                                  <td className="px-5 py-3 text-right font-mono text-emerald-500 font-medium">{formatCurrency(growth, curLabel.currency, curLabel.locale)}</td>
+                                  <td className="px-5 py-3 text-right font-mono font-bold">{formatCurrency(bal, curLabel.currency, curLabel.locale)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </CollapsibleCard>
                 </div>
+                <div className="text-center text-xs text-[hsl(var(--muted-foreground))] pb-8 space-y-1"><p>Disclaimer: Educational purposes only. Gaussian distribution used for Monte Carlo.</p><p>Note: Values are exclusive of taxes. Investment fees deducted. Actual tax liability depends on jurisdiction.</p></div>
               </div>
             </main>
-
           </div>
         </div>
       );
@@ -1177,4 +645,3 @@
   </script>
 </body>
 </html>
-
