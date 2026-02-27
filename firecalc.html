@@ -9,7 +9,7 @@
   <meta name="keywords" content="FIRE calculator, retirement, Monte Carlo simulation, early retirement, financial independence, CPP, OAS, Social Security, TFSA, Roth IRA, RRSP, 401k">
   <meta name="author" content="Corwin">
   <link rel="canonical" href="https://cor.win/firecalc.html">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
   <meta property="og:title" content="Corwin's FIRE Calc">
   <meta property="og:description" content="Plan your early retirement with this advanced Monte Carlo simulation tool. Account for tax-advantaged accounts and inflation.">
@@ -89,6 +89,21 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: hsl(var(--muted-foreground));
     }
+
+    /* Cyber Theme Specifics */
+    [data-theme='cyber'] {
+      --font-heading: 'Orbitron', sans-serif;
+    }
+    [data-theme='cyber'] h1, [data-theme='cyber'] button, [data-theme='cyber'] .font-bold {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.05em;
+    }
+    [data-theme='cyber'] .rounded-2xl {
+      backdrop-filter: blur(12px);
+    }
+    [data-theme='cyber'] .rounded-2xl:hover {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+    }
   </style>
 </head>
 <body class="bg-[hsl(var(--background))]">
@@ -102,7 +117,8 @@
     const THEMES = {
       zinc: `--background: 240 10% 4%; --foreground: 0 0% 98%; --card: 240 10% 9%; --card-foreground: 0 0% 98%; --primary: 75 100% 50%; --primary-foreground: 240 10% 4%; --muted: 240 4% 16%; --muted-foreground: 240 5% 65%; --border: 240 4% 16%; --ring: 75 100% 50%; --chart-grid: rgba(255,255,255,0.05); --chart-text: #94a3b8; --card-gradient: linear-gradient(135deg, hsl(240 10% 4%) 0%, hsl(75 100% 10%) 100%); --primary-gradient: linear-gradient(135deg, hsl(75 100% 50%) 0%, hsl(75 100% 35%) 100%);`,
       sage: `--background: 155 10% 6%; --foreground: 155 10% 98%; --card: 155 10% 10%; --card-foreground: 155 10% 98%; --primary: 150 100% 45%; --primary-foreground: 155 20% 10%; --muted: 155 10% 18%; --muted-foreground: 155 10% 65%; --border: 155 10% 18%; --ring: 150 100% 45%; --chart-grid: rgba(255,255,255,0.05); --chart-text: #94a3b8; --card-gradient: linear-gradient(135deg, hsl(155 10% 6%) 0%, hsl(150 100% 10%) 100%); --primary-gradient: linear-gradient(135deg, hsl(150 100% 45%) 0%, hsl(150 100% 30%) 100%);`,
-      light: `--background: 210 40% 98%; --foreground: 240 10% 4%; --card: 0 0% 100%; --card-foreground: 240 10% 4%; --primary: 84 81% 44%; --primary-foreground: 0 0% 100%; --muted: 240 5% 90%; --muted-foreground: 240 4% 46%; --border: 240 6% 85%; --ring: 84 81% 44%; --chart-grid: rgba(0,0,0,0.05); --chart-text: #64748b; --card-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(84 81% 90%) 100%); --primary-gradient: linear-gradient(135deg, hsl(84 81% 44%) 0%, hsl(84 81% 30%) 100%);`
+      light: `--background: 210 40% 98%; --foreground: 240 10% 4%; --card: 0 0% 100%; --card-foreground: 240 10% 4%; --primary: 84 81% 44%; --primary-foreground: 0 0% 100%; --muted: 240 5% 90%; --muted-foreground: 240 4% 46%; --border: 240 6% 85%; --ring: 84 81% 44%; --chart-grid: rgba(0,0,0,0.05); --chart-text: #64748b; --card-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(84 81% 90%) 100%); --primary-gradient: linear-gradient(135deg, hsl(84 81% 44%) 0%, hsl(84 81% 30%) 100%);`,
+      cyber: `--background: 222 47% 11%; --foreground: 210 40% 98%; --card: 217 33% 17% / 0.7; --card-foreground: 210 40% 98%; --primary: 290 100% 60%; --primary-foreground: 0 0% 100%; --muted: 217 33% 25% / 0.5; --muted-foreground: 215 20% 65%; --border: 290 100% 60% / 0.3; --ring: 290 100% 60%; --chart-grid: rgba(168, 85, 247, 0.1); --chart-text: #e2e8f0; --card-gradient: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%); --primary-gradient: linear-gradient(90deg, #a855f7, #ec4899);`
     };
 
     const LABELS = {
@@ -491,7 +507,7 @@
             <div className="flex items-center gap-2">
               <label className="hidden sm:block text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
               <select value={theme} onChange={(e) => setTheme(e.target.value)} className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/50] font-medium shadow-sm hover:border-[hsl(var(--primary))/50]">
-                <option value="zinc">Zinc (Dark)</option><option value="sage">Sage (Dark)</option><option value="light">Light</option>
+                <option value="zinc">Zinc (Dark)</option><option value="sage">Sage (Dark)</option><option value="light">Light</option><option value="cyber">Cyberpunk</option>
               </select>
             </div>
           </header>
