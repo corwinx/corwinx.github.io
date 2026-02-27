@@ -249,13 +249,17 @@
       );
     };
 
-    const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => (
-      <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
-        <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
-        <div className={`text-lg font-bold tracking-tight truncate ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} title={value}>{value}</div>
-        {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
-      </div>
-    );
+    const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => {
+      const len = String(value).length;
+      const sizeClass = len > 15 ? 'text-base' : len > 12 ? 'text-lg' : len > 9 ? 'text-xl' : 'text-2xl';
+      return (
+        <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
+          <div className={`${sizeClass} font-bold tracking-tight truncate ${highlight && !isGradient ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} title={value}>{value}</div>
+          {subtitle && <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))] font-medium">{subtitle}</div>}
+        </div>
+      );
+    };
 
     const Slider = ({ value, min, max, onChange, label, displayValue }) => (
       <div className="space-y-2 w-full">
@@ -498,11 +502,13 @@
       if (!isClient) return null;
 
       return (
-        <div className="flex max-h-screen w-full flex-col bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans">
+        <div className="flex min-h-screen lg:h-screen w-full flex-col bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300 font-sans">
           <header className="sticky top-0 lg:static flex h-16 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-6 bg-[hsl(var(--card))]/80 backdrop-blur z-20">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]"><Leaf className="h-4 w-4 text-[hsl(var(--primary))]" /></div>
-              <div><h1 className="text-sm font-bold tracking-tight">{curLabel.title}</h1><p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p></div>
+              <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[image:var(--card-gradient)] shadow-[0_0_15px_-3px_hsl(var(--primary)/0.2)]"><Leaf className="h-4 w-4 text-[hsl(var(--primary))]" /></div>
+                <div><h1 className="text-sm font-bold tracking-tight">{curLabel.title}</h1><p className="text-[10px] text-[hsl(var(--muted-foreground))]">Monte Carlo Simulation</p></div>
+              </a>
             </div>
             <div className="flex items-center gap-2">
               <label className="hidden sm:block text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-bold">Theme</label>
@@ -512,8 +518,8 @@
             </div>
           </header>
 
-          <div className="flex flex-1 flex-col lg:flex-row overflow-hidden lg:min-h-0">
-            <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] overflow-y-auto custom-scrollbar p-6 space-y-6">
+          <div className="flex flex-1 flex-col lg:flex-row lg:overflow-hidden lg:min-h-0">
+            <aside className="w-full lg:w-[420px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] lg:overflow-y-auto custom-scrollbar p-6 space-y-6">
               <CollapsibleCard title="Setup" icon={User}>
                 <div className="space-y-4">
                   <div className="space-y-1.5">
@@ -591,7 +597,7 @@
               </div>
             </aside>
 
-            <main className="flex-1 bg-[hsl(var(--background))] custom-scrollbar p-4 lg:p-8 overflow-y-auto relative">
+            <main className="flex-1 bg-[hsl(var(--background))] custom-scrollbar p-4 lg:p-8 lg:overflow-y-auto relative">
               <div className="mx-auto max-w-6xl space-y-6">
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                   <StatCard title="Total Portfolio" value={formatCurrency(totalNow, curLabel.currency, curLabel.locale)} subtitle="Current value" isGradient={true} highlight={true} />
