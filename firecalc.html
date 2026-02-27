@@ -9,6 +9,7 @@
   <meta name="keywords" content="FIRE calculator, retirement, Monte Carlo simulation, early retirement, financial independence, CPP, OAS, Social Security, TFSA, Roth IRA, RRSP, 401k">
   <meta name="author" content="Corwin">
   <link rel="canonical" href="https://cor.win/firecalc.html">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
   <meta property="og:title" content="Corwin's FIRE Calc">
   <meta property="og:description" content="Plan your early retirement with this advanced Monte Carlo simulation tool. Account for tax-advantaged accounts and inflation.">
@@ -70,6 +71,9 @@
     body {
       margin: 0;
       padding: 0;
+    }
+    * {
+      font-family: 'Inter', 'Noto Color Emoji', sans-serif;
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 8px;
@@ -501,7 +505,7 @@
                     <div className="flex bg-[hsl(var(--muted))] rounded-lg p-1 shadow-sm w-full">
                       {['US', 'CA', 'EU'].map(c => (
                         <button key={c} onClick={() => setParams(p => ({ ...p, country: c }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${params.country === c ? 'bg-[hsl(var(--card))] text-[hsl(var(--primary))] shadow-sm' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
-                          {c === 'US' ? 'USA' : c === 'CA' ? 'Canada' : 'EU'}
+                          {c === 'US' ? '🇺🇸 USA' : c === 'CA' ? '🇨🇦 Canada' : '🇪🇺 EU'}
                         </button>
                       ))}
                     </div>
