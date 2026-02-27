@@ -251,7 +251,7 @@
 
     const StatCard = ({ title, value, subtitle, highlight = false, isGradient = false }) => {
       const len = String(value).length;
-      const sizeClass = len > 15 ? 'text-base' : len > 12 ? 'text-lg' : len > 9 ? 'text-xl' : 'text-2xl';
+      const sizeClass = len > 14 ? 'text-sm' : len > 11 ? 'text-base' : len > 8 ? 'text-lg' : 'text-xl';
       return (
         <div className={`rounded-2xl border border-[hsl(var(--border))] p-5 shadow-md flex flex-col justify-center transition-colors duration-300 ${isGradient ? 'bg-[image:var(--card-gradient)]' : 'bg-[hsl(var(--card))]'}`}>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">{title}</div>
